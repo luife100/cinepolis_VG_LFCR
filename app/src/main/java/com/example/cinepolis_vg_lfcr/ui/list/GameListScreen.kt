@@ -19,18 +19,26 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -104,6 +112,48 @@ fun GameListScreen(
                 }
             }
 
+            if (state.selectionMode) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (state.selectedGameIds.isEmpty()) "Select items" else "${state.selectedGameIds.size} selected",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        if (state.selectedGameIds.isNotEmpty()) {
+                            Button(
+                                onClick = viewModel::bulkMarkFavoriteSelected,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                )
+                            ) {
+                                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text("Favorites")
+                            }
+                            Button(
+                                onClick = viewModel::showBulkDeleteConfirmation,
+                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.errorContainer
+                                )
+                            ) {
+                                Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                                Spacer(modifier = Modifier.size(4.dp))
+                                Text("Delete")
+                            }
+                        }
+                        TextButton(onClick = viewModel::exitSelectionMode) {
+                            Text("Cancel")
+                        }
+                    }
+                }
+            }
+
             PullToRefreshBox(
                 isRefreshing = state.isRefreshing,
                 onRefresh = viewModel::onPullToRefresh,
@@ -129,7 +179,13 @@ fun GameListScreen(
                         ) { game ->
                             GameItem(
                                 game = game,
-                                onClick = { viewModel.setSelectedGame(game) }
+                                isSelectionMode = state.selectionMode,
+                                isSelected = state.selectedGameIds.contains(game.id),
+                                onClick = {
+                                    if (state.selectionMode) viewModel.toggleGameSelection(game.id)
+                                    else viewModel.setSelectedGame(game)
+                                },
+                                onLongClick = { viewModel.enterSelectionMode(game.id) }
                             )
                         }
                     }
@@ -146,11 +202,44 @@ fun GameListScreen(
                         ) { game ->
                             GridGameItem(
                                 game = game,
-                                onClick = { viewModel.setSelectedGame(game) }
+                                isSelectionMode = state.selectionMode,
+                                isSelected = state.selectedGameIds.contains(game.id),
+                                onClick = {
+                                    if (state.selectionMode) viewModel.toggleGameSelection(game.id)
+                                    else viewModel.setSelectedGame(game)
+                                },
+                                onLongClick = { viewModel.enterSelectionMode(game.id) }
                             )
                         }
                     }
                 }
+            }
+
+            if (state.showBulkDeleteConfirmation) {
+                AlertDialog(
+                    onDismissRequest = viewModel::dismissBulkDeleteConfirmation,
+                    title = { Text("Delete games?") },
+                    text = {
+                        Text(
+                            "Delete ${state.selectedGameIds.size} game(s)? They will be hidden from the list."
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = viewModel::bulkDeleteSelected,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text("Delete")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::dismissBulkDeleteConfirmation) {
+                            Text("Cancel")
+                        }
+                    }
+                )
             }
 
             if (state.selectedGame != null) {
@@ -188,16 +277,37 @@ fun GameListScreen(
 @Composable
 private fun GridGameItem(
     game: Game,
-    onClick: () -> Unit
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        )
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
+            if (isSelectionMode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                        contentDescription = if (isSelected) "Selected" else "Not selected",
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
             AsyncImage(
                 model = game.thumbnail,
                 contentDescription = game.title,
@@ -223,14 +333,23 @@ private fun GridGameItem(
 @Composable
 private fun GameItem(
     game: Game,
-    onClick: () -> Unit
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+        )
     ) {
         Row(
             modifier = Modifier
@@ -238,6 +357,13 @@ private fun GameItem(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (isSelectionMode) {
+                Icon(
+                    imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                    contentDescription = if (isSelected) "Selected" else "Not selected"
+                )
+                Spacer(modifier = Modifier.size(8.dp))
+            }
             AsyncImage(
                 model = game.thumbnail,
                 contentDescription = game.title,

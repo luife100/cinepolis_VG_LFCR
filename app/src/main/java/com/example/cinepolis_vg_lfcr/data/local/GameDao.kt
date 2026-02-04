@@ -43,9 +43,18 @@ interface GameDao {
     @Query("UPDATE games SET isDeleted = 1 WHERE id = :id")
     suspend fun markDeleted(id: Int)
 
-    /** Used on sync: get current isDeleted flag per id so we don't overwrite user deletions. */
-    @Query("SELECT id, isDeleted FROM games")
-    suspend fun getAllIdAndDeleted(): List<IdAndDeleted>
+    /** Bulk logical delete. */
+    @Query("UPDATE games SET isDeleted = 1 WHERE id IN (:ids)")
+    suspend fun markDeleted(ids: List<Int>)
+
+    /** Mark games as favorite. */
+    @Query("UPDATE games SET isFavorite = 1 WHERE id IN (:ids)")
+    suspend fun markFavorite(ids: List<Int>)
+
+    /** Used on sync: get current isDeleted and isFavorite per id so we don't overwrite user data. */
+    @Query("SELECT id, isDeleted, isFavorite FROM games")
+    suspend fun getAllIdDeletedFavorite(): List<IdDeletedFavorite>
 }
 
 data class IdAndDeleted(val id: Int, val isDeleted: Boolean)
+data class IdDeletedFavorite(val id: Int, val isDeleted: Boolean, val isFavorite: Boolean)

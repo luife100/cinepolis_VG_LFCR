@@ -18,10 +18,11 @@ object GameMapper {
         developer = developer,
         releaseDate = releaseDate,
         freetogameProfileUrl = freetogameProfileUrl,
-        isDeleted = isDeleted
+        isDeleted = isDeleted,
+        isFavorite = isFavorite
     )
 
-    fun GameDto.toEntity(isDeleted: Boolean = false): GameEntity = GameEntity(
+    fun GameDto.toEntity(isDeleted: Boolean = false, isFavorite: Boolean = false): GameEntity = GameEntity(
         id = id,
         title = title,
         thumbnail = thumbnail,
@@ -33,7 +34,8 @@ object GameMapper {
         developer = developer,
         releaseDate = releaseDate,
         freetogameProfileUrl = freetogameProfileUrl,
-        isDeleted = isDeleted
+        isDeleted = isDeleted,
+        isFavorite = isFavorite
     )
 
     fun Game.toEntity(): GameEntity = GameEntity(
@@ -48,6 +50,7 @@ object GameMapper {
         developer = developer,
         releaseDate = releaseDate,
         freetogameProfileUrl = freetogameProfileUrl,
-        isDeleted = isDeleted
+        isDeleted = isDeleted,
+        isFavorite = isFavorite
     )
 }

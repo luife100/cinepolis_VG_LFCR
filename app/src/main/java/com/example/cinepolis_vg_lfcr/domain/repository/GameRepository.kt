@@ -26,4 +26,10 @@ interface GameRepository {
 
     /** Logical delete: mark game as deleted. */
     suspend fun markGameDeleted(id: Int)
+
+    /** Bulk logical delete. */
+    suspend fun markGamesDeleted(ids: List<Int>)
+
+    /** Mark multiple games as favorite. */
+    suspend fun markGamesFavorite(ids: List<Int>)
 }

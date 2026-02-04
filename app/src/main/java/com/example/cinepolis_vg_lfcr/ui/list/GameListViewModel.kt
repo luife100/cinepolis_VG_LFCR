@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.cinepolis_vg_lfcr.domain.model.Game
 import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGameDeletedUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesDeletedUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesFavoriteUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
 import com.example.cinepolis_vg_lfcr.data.preferences.ViewModePreferences
@@ -30,7 +32,10 @@ data class GameListUiState(
     val isRefreshing: Boolean = false,
     val refreshError: String? = null,
     val selectedGame: Game? = null,
-    val viewMode: ViewMode = ViewMode.List
+    val viewMode: ViewMode = ViewMode.List,
+    val selectionMode: Boolean = false,
+    val selectedGameIds: Set<Int> = emptySet(),
+    val showBulkDeleteConfirmation: Boolean = false
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -41,6 +46,8 @@ class GameListViewModel @Inject constructor(
     private val syncGamesUseCase: SyncGamesUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
     private val markGameDeletedUseCase: MarkGameDeletedUseCase,
+    private val markGamesDeletedUseCase: MarkGamesDeletedUseCase,
+    private val markGamesFavoriteUseCase: MarkGamesFavoriteUseCase,
     private val viewModePreferences: ViewModePreferences
 ) : ViewModel() {
 
@@ -119,6 +126,61 @@ class GameListViewModel @Inject constructor(
         viewModelScope.launch {
             runCatching { markGameDeletedUseCase(id) }
                 .onSuccess { clearSelection() }
+        }
+    }
+
+    fun enterSelectionMode(initialId: Int? = null) {
+        _state.update {
+            it.copy(
+                selectionMode = true,
+                selectedGameIds = if (initialId != null) setOf(initialId) else emptySet()
+            )
+        }
+    }
+
+    fun exitSelectionMode() {
+        _state.update {
+            it.copy(selectionMode = false, selectedGameIds = emptySet())
+        }
+    }
+
+    fun toggleGameSelection(id: Int) {
+        _state.update { state ->
+            val newSet = if (state.selectedGameIds.contains(id)) {
+                state.selectedGameIds - id
+            } else {
+                state.selectedGameIds + id
+            }
+            state.copy(selectedGameIds = newSet)
+        }
+    }
+
+    fun showBulkDeleteConfirmation() {
+        if (_state.value.selectedGameIds.isNotEmpty()) {
+            _state.update { it.copy(showBulkDeleteConfirmation = true) }
+        }
+    }
+
+    fun dismissBulkDeleteConfirmation() {
+        _state.update { it.copy(showBulkDeleteConfirmation = false) }
+    }
+
+    fun bulkDeleteSelected() {
+        val ids = _state.value.selectedGameIds.toList()
+        if (ids.isEmpty()) return
+        _state.update { it.copy(showBulkDeleteConfirmation = false) }
+        viewModelScope.launch {
+            runCatching { markGamesDeletedUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+    }
+
+    fun bulkMarkFavoriteSelected() {
+        val ids = _state.value.selectedGameIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            runCatching { markGamesFavoriteUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
         }
     }
 }

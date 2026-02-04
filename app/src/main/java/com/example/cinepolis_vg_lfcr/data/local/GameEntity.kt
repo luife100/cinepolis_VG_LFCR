@@ -20,5 +20,6 @@ data class GameEntity(
     val developer: String,
     val releaseDate: String,
     val freetogameProfileUrl: String,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val isFavorite: Boolean = false
 )

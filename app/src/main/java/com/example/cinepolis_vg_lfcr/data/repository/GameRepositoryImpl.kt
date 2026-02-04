@@ -33,9 +33,13 @@ class GameRepositoryImpl @Inject constructor(
         if (!shouldSync) return Result.success(Unit)
         return runCatching {
             val dtos = api.getGames()
-            val existingById = dao.getAllIdAndDeleted().associate { it.id to it.isDeleted }
+            val existing = dao.getAllIdDeletedFavorite().associateBy { it.id }
             val entities = dtos.map { dto ->
-                dto.toEntity(isDeleted = existingById[dto.id] ?: false)
+                val ex = existing[dto.id]
+                dto.toEntity(
+                    isDeleted = ex?.isDeleted ?: false,
+                    isFavorite = ex?.isFavorite ?: false
+                )
             }
             dao.insertAll(entities)
         }
@@ -47,5 +51,13 @@ class GameRepositoryImpl @Inject constructor(
 
     override suspend fun markGameDeleted(id: Int) {
         dao.markDeleted(id)
+    }
+
+    override suspend fun markGamesDeleted(ids: List<Int>) {
+        if (ids.isNotEmpty()) dao.markDeleted(ids)
+    }
+
+    override suspend fun markGamesFavorite(ids: List<Int>) {
+        if (ids.isNotEmpty()) dao.markFavorite(ids)
     }
 }
