@@ -10,18 +10,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -55,48 +58,45 @@ fun GameDetailScreen(
         }
     }
 
-    Scaffold(
-        topBar = {
-            Text(
-                text = "Game Detail",
-                style = androidx.compose.material3.MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.padding(16.dp)
-            )
-        }
-    ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            when {
-                state.isLoading && state.game == null -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator()
-                    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        when {
+            state.isLoading && state.game == null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
                 }
-                state.error != null && state.game == null -> {
+            }
+            state.error != null && state.game == null -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(
                         text = state.error!!,
                         color = androidx.compose.material3.MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-                state.game != null -> {
-                    GameDetailContent(
-                        game = state.game!!,
-                        onEdit = { updated -> viewModel.updateGame(updated) },
-                        onDelete = { viewModel.deleteGame() },
-                        error = state.error
-                    )
-                }
+            }
+            state.game != null -> {
+                GameDetailContent(
+                    game = state.game!!,
+                    onClose = { navController.popBackStack() },
+                    onEdit = { updated -> viewModel.updateGame(updated) },
+                    onDelete = { viewModel.deleteGame() },
+                    error = state.error
+                )
             }
         }
     }
 }
 
 @Composable
-private fun GameDetailContent(
+fun GameDetailContent(
     game: Game,
+    onClose: () -> Unit,
     onEdit: (Game) -> Unit,
     onDelete: () -> Unit,
     error: String?
@@ -135,92 +135,105 @@ private fun GameDetailContent(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp)
+    Card(
+        modifier = Modifier.widthIn(max = 400.dp),
+        shape = androidx.compose.material3.MaterialTheme.shapes.large,
+        colors = CardDefaults.cardColors(
+            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
     ) {
-        error?.let {
-            Text(
-                text = it,
-                color = androidx.compose.material3.MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(bottom = 8.dp)
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onClose
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Close"
+                    )
+                }
+            }
+            error?.let {
+                Text(
+                    text = it,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            AsyncImage(
+                model = game.thumbnail,
+                contentDescription = game.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentScale = ContentScale.Crop
             )
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f))
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                AsyncImage(
-                    model = game.thumbnail,
-                    contentDescription = game.title,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp),
-                    contentScale = ContentScale.Crop
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = game.title,
-                    style = androidx.compose.material3.MaterialTheme.typography.headlineSmall
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = game.shortDescription,
-                    style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Genre: ${game.genre}",
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Platform: ${game.platform}",
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = "Release: ${game.releaseDate}",
-                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Button(
-                onClick = { showEditDialog = true },
-                modifier = Modifier.weight(1f)
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = game.title,
+                style = androidx.compose.material3.MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = game.shortDescription,
+                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = "Genre: ${game.genre}",
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "Platform: ${game.platform}",
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = "Release: ${game.releaseDate}",
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                androidx.compose.material3.Icon(
-                    Icons.Default.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text("Edit")
-            }
-            Button(
-                onClick = { showDeleteDialog = true },
-                modifier = Modifier.weight(1f),
-                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.errorContainer,
-                    contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onErrorContainer
-                )
-            ) {
-                androidx.compose.material3.Icon(
-                    Icons.Default.Delete,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text("Delete")
+                Button(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("Edit")
+                }
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.weight(1f),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.errorContainer,
+                        contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text("Delete")
+                }
             }
         }
     }

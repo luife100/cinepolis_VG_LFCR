@@ -1,6 +1,8 @@
 package com.example.cinepolis_vg_lfcr.ui.list
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -28,8 +30,10 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -37,7 +41,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cinepolis_vg_lfcr.domain.model.Game
-import com.example.cinepolis_vg_lfcr.ui.navigation.Routes
+import com.example.cinepolis_vg_lfcr.ui.detail.GameDetailContent
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -100,8 +104,37 @@ fun GameListScreen(
                     ) { game ->
                         GameItem(
                             game = game,
-                            onClick = { navController.navigate(Routes.detail(game.id)) }
+                            onClick = { viewModel.setSelectedGame(game) }
                         )
+                    }
+                }
+            }
+
+            if (state.selectedGame != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable { viewModel.clearSelection() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { /* consume clicks so card doesn't close */ }
+                    ) {
+                        state.selectedGame?.let{ selectedGame ->
+                            GameDetailContent(
+                            game = selectedGame,
+                            onClose = viewModel::clearSelection,
+                            onEdit = { viewModel.updateGame(it) },
+                            onDelete = { viewModel.deleteGame(selectedGame.id) },
+                            error = null
+                        )
+                    }
                     }
                 }
             }
