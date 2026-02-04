@@ -154,7 +154,7 @@ fun GameListScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (state.selectedGameIds.isEmpty()) "Select items" else "${state.selectedGameIds.size} selected",
+                            text = if (state.selectedGameIds.isEmpty()) "Select items" else "${state.selectedGameIds.size}",
                             style = MaterialTheme.typography.bodyMedium
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -163,7 +163,8 @@ fun GameListScreen(
                                     Button(
                                         onClick = viewModel::bulkUnfavoriteSelected,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     ) {
                                         Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -174,7 +175,8 @@ fun GameListScreen(
                                     Button(
                                         onClick = viewModel::bulkMarkFavoriteSelected,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     ) {
                                         Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -186,7 +188,8 @@ fun GameListScreen(
                                     Button(
                                         onClick = viewModel::bulkRestoreSelected,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     ) {
                                         Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
@@ -197,7 +200,8 @@ fun GameListScreen(
                                     Button(
                                         onClick = viewModel::showBulkDeleteConfirmation,
                                         colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                            containerColor = MaterialTheme.colorScheme.errorContainer
+                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                     ) {
                                         Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
