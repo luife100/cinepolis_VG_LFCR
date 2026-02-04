@@ -23,6 +23,32 @@ interface GameDao {
     """)
     fun searchNotDeleted(query: String): Flow<List<GameEntity>>
 
+    /** All favorite games (not deleted). */
+    @Query("SELECT * FROM games WHERE isDeleted = 0 AND isFavorite = 1 ORDER BY title ASC")
+    fun getFavorites(): Flow<List<GameEntity>>
+
+    /** Search favorites by title or genre. */
+    @Query("""
+        SELECT * FROM games 
+        WHERE isDeleted = 0 AND isFavorite = 1 
+        AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
+        ORDER BY title ASC
+    """)
+    fun searchFavorites(query: String): Flow<List<GameEntity>>
+
+    /** All logically deleted games. */
+    @Query("SELECT * FROM games WHERE isDeleted = 1 ORDER BY title ASC")
+    fun getDeleted(): Flow<List<GameEntity>>
+
+    /** Search deleted games by title or genre. */
+    @Query("""
+        SELECT * FROM games 
+        WHERE isDeleted = 1 
+        AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
+        ORDER BY title ASC
+    """)
+    fun searchDeleted(query: String): Flow<List<GameEntity>>
+
     /** Get single game by id (may be deleted). */
     @Query("SELECT * FROM games WHERE id = :id")
     suspend fun getById(id: Int): GameEntity?

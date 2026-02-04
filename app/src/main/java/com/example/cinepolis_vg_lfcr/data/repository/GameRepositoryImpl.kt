@@ -25,6 +25,18 @@ class GameRepositoryImpl @Inject constructor(
     override fun searchGames(query: String): Flow<List<Game>> =
         dao.searchNotDeleted(query).map { entities -> entities.map { it.toDomain() } }
 
+    override fun getFavoriteGames(): Flow<List<Game>> =
+        dao.getFavorites().map { entities -> entities.map { it.toDomain() } }
+
+    override fun searchFavoriteGames(query: String): Flow<List<Game>> =
+        dao.searchFavorites(query).map { entities -> entities.map { it.toDomain() } }
+
+    override fun getDeletedGames(): Flow<List<Game>> =
+        dao.getDeleted().map { entities -> entities.map { it.toDomain() } }
+
+    override fun searchDeletedGames(query: String): Flow<List<Game>> =
+        dao.searchDeleted(query).map { entities -> entities.map { it.toDomain() } }
+
     override suspend fun getGameById(id: Int): Game? =
         dao.getById(id)?.toDomain()
 

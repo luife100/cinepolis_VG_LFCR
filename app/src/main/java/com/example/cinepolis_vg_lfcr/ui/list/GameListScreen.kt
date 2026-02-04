@@ -33,6 +33,8 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.AlertDialog
@@ -65,13 +67,40 @@ fun GameListScreen(
 ) {
     val state by viewModel.state.collectAsState()
 
+    val listTitle = when (state.listType) {
+        ListType.Main -> "Game Catalog"
+        ListType.Favorites -> "Favorites"
+        ListType.Deleted -> "Deleted"
+    }
     Scaffold(
         topBar = {
             Text(
-                text = "Game Catalog",
+                text = listTitle,
                 style = MaterialTheme.typography.headlineMedium,
                 modifier = Modifier.padding(16.dp)
             )
+        },
+        bottomBar = {
+            NavigationBar {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.ViewList, contentDescription = null) },
+                    label = { Text("List") },
+                    selected = state.listType == ListType.Main,
+                    onClick = { viewModel.setListType(ListType.Main) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Star, contentDescription = null) },
+                    label = { Text("Favorites") },
+                    selected = state.listType == ListType.Favorites,
+                    onClick = { viewModel.setListType(ListType.Favorites) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                    label = { Text("Deleted") },
+                    selected = state.listType == ListType.Deleted,
+                    onClick = { viewModel.setListType(ListType.Deleted) }
+                )
+            }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding)) {

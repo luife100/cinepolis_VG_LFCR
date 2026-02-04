@@ -15,6 +15,18 @@ interface GameRepository {
     /** Search by title or genre; only non-deleted. */
     fun searchGames(query: String): Flow<List<Game>>
 
+    /** Favorite games (not deleted). */
+    fun getFavoriteGames(): Flow<List<Game>>
+
+    /** Search favorites by title or genre. */
+    fun searchFavoriteGames(query: String): Flow<List<Game>>
+
+    /** Logically deleted games. */
+    fun getDeletedGames(): Flow<List<Game>>
+
+    /** Search deleted games by title or genre. */
+    fun searchDeletedGames(query: String): Flow<List<Game>>
+
     /** Single game by id, or null if not found. */
     suspend fun getGameById(id: Int): Game?
 

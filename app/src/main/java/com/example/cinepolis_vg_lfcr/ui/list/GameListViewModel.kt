@@ -3,10 +3,14 @@ package com.example.cinepolis_vg_lfcr.ui.list
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.domain.usecase.GetDeletedGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.GetFavoriteGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGameDeletedUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesDeletedUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesFavoriteUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SearchDeletedGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SearchFavoriteGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
 import com.example.cinepolis_vg_lfcr.data.preferences.ViewModePreferences
@@ -16,6 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
@@ -26,6 +31,8 @@ import javax.inject.Inject
 
 enum class ViewMode { List, Grid }
 
+enum class ListType { Main, Favorites, Deleted }
+
 data class GameListUiState(
     val games: List<Game> = emptyList(),
     val searchQuery: String = "",
@@ -35,7 +42,8 @@ data class GameListUiState(
     val viewMode: ViewMode = ViewMode.List,
     val selectionMode: Boolean = false,
     val selectedGameIds: Set<Int> = emptySet(),
-    val showBulkDeleteConfirmation: Boolean = false
+    val showBulkDeleteConfirmation: Boolean = false,
+    val listType: ListType = ListType.Main
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -43,6 +51,10 @@ data class GameListUiState(
 class GameListViewModel @Inject constructor(
     private val getGamesUseCase: GetGamesUseCase,
     private val searchGamesUseCase: SearchGamesUseCase,
+    private val getFavoriteGamesUseCase: GetFavoriteGamesUseCase,
+    private val searchFavoriteGamesUseCase: SearchFavoriteGamesUseCase,
+    private val getDeletedGamesUseCase: GetDeletedGamesUseCase,
+    private val searchDeletedGamesUseCase: SearchDeletedGamesUseCase,
     private val syncGamesUseCase: SyncGamesUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
     private val markGameDeletedUseCase: MarkGameDeletedUseCase,
@@ -55,15 +67,28 @@ class GameListViewModel @Inject constructor(
     val state: StateFlow<GameListUiState> = _state.asStateFlow()
 
     private val searchQueryFlow = MutableStateFlow("")
+    private val listTypeFlow = MutableStateFlow(ListType.Main)
 
     init {
-        searchQueryFlow
-            .flatMapLatest { query ->
-                if (query.isBlank()) getGamesUseCase()
-                else searchGamesUseCase(query)
+        combine(listTypeFlow, searchQueryFlow) { listType, query -> listType to query }
+            .flatMapLatest { (listType, query) ->
+                when (listType) {
+                    ListType.Main ->
+                        if (query.isBlank()) getGamesUseCase() else searchGamesUseCase(query)
+                    ListType.Favorites ->
+                        if (query.isBlank()) getFavoriteGamesUseCase() else searchFavoriteGamesUseCase(query)
+                    ListType.Deleted ->
+                        if (query.isBlank()) getDeletedGamesUseCase() else searchDeletedGamesUseCase(query)
+                }
             }
             .onEach { games ->
                 _state.update { it.copy(games = games) }
+            }
+            .launchIn(viewModelScope)
+
+        listTypeFlow
+            .onEach { type ->
+                _state.update { it.copy(listType = type) }
             }
             .launchIn(viewModelScope)
 
@@ -100,6 +125,10 @@ class GameListViewModel @Inject constructor(
 
     fun setSelectedGame(game: Game?) {
         _state.update { it.copy(selectedGame = game) }
+    }
+
+    fun setListType(type: ListType) {
+        listTypeFlow.value = type
     }
 
     fun setViewMode(mode: ViewMode) {
