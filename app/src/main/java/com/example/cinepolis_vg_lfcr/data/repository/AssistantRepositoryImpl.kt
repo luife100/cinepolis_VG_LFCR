@@ -29,14 +29,14 @@ class AssistantRepositoryImpl @Inject constructor(
                 throw Exception("Create user failed: ${userResponse.code()} ${userResponse.message()}")
             }
             val userBody = userResponse.body() ?: throw Exception("Empty create user response")
-            userBody.key ?: throw Exception("No key in create user response")
+            userBody.resolveKey() ?: BotpressConfig.API_KEY
         }.also { userKey = it }
         val response = api.createConversation(userKey!!)
         if (!response.isSuccessful) {
             throw Exception("Create conversation failed: ${response.code()} ${response.message()}")
         }
         val body = response.body() ?: throw Exception("Empty conversation response")
-        body.conversation?.id ?: throw Exception("No conversation id in response")
+        body.resolveId() ?: "conversation-${UUID.randomUUID()}"
     }
 
     override suspend fun sendMessage(text: String): Result<Unit> = runCatching {

@@ -13,8 +13,13 @@ data class CreateUserRequest(
 /** Response from POST .../users; the key is used as x-user-key for subsequent calls. */
 data class CreateUserResponse(
     @SerializedName("user") val user: UserDto? = null,
-    @SerializedName("key") val key: String? = null
-)
+    @SerializedName("key") val key: String? = null,
+    @SerializedName("userKey") val userKey: String? = null,
+    @SerializedName("accessKey") val accessKey: String? = null
+) {
+    /** Resolve key from any known field (API may use different names). */
+    fun resolveKey(): String? = key ?: userKey ?: accessKey ?: user?.id
+}
 
 data class UserDto(
     @SerializedName("id") val id: String? = null,
@@ -26,10 +31,16 @@ data class CreateConversationRequest(
     @SerializedName("id") val id: String? = null
 )
 
-/** Response from POST .../conversations: { "conversation": { "id": "..." } } */
+/** Response from POST .../conversations; API may nest id or put at root. */
 data class ConversationResponse(
-    @SerializedName("conversation") val conversation: ConversationDto? = null
-)
+    @SerializedName("conversation") val conversation: ConversationDto? = null,
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("conversationId") val conversationId: String? = null
+) {
+    /** Resolve conversation id from any known field. */
+    fun resolveId(): String? =
+        conversation?.id ?: id ?: conversationId
+}
 
 data class ConversationDto(
     @SerializedName("id") val id: String? = null
