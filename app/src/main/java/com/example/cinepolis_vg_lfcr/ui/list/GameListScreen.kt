@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -38,7 +39,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.example.cinepolis_vg_lfcr.domain.model.Game
 import com.example.cinepolis_vg_lfcr.ui.detail.GameDetailContent
@@ -46,7 +46,6 @@ import com.example.cinepolis_vg_lfcr.ui.detail.GameDetailContent
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GameListScreen(
-    navController: NavController,
     viewModel: GameListViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsState()
@@ -167,7 +166,11 @@ private fun GameItem(
                 contentScale = ContentScale.Crop
             )
             Spacer(modifier = Modifier.size(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(72.dp)
+            ) {
                 Text(
                     text = game.title,
                     style = MaterialTheme.typography.titleMedium,
@@ -177,7 +180,16 @@ private fun GameItem(
                 Text(
                     text = game.genre,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = game.shortDescription,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
         }
