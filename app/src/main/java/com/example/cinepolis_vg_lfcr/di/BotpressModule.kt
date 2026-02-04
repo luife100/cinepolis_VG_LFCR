@@ -27,7 +27,9 @@ object BotpressModule {
         .addInterceptor { chain ->
             chain.proceed(
                 chain.request().newBuilder()
-                    .addHeader(BotpressConfig.HEADER_USER_KEY, BotpressConfig.API_KEY)
+                    .addHeader(BotpressConfig.HEADER_AUTHORIZATION, "Bearer ${BotpressConfig.API_KEY}")
+                    .addHeader(BotpressConfig.HEADER_BOT_ID, BotpressConfig.BOT_ID)
+                    .addHeader("Content-Type", "application/json")
                     .build()
             )
         }
