@@ -44,4 +44,7 @@ interface GameRepository {
 
     /** Mark multiple games as favorite. */
     suspend fun markGamesFavorite(ids: List<Int>)
+
+    /** Remove multiple games from favorites. */
+    suspend fun markGamesUnfavorite(ids: List<Int>)
 }

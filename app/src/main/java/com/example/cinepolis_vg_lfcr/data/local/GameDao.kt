@@ -10,16 +10,16 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface GameDao {
 
-    /** All games that are not logically deleted. */
-    @Query("SELECT * FROM games WHERE isDeleted = 0 ORDER BY title ASC")
+    /** All games that are not logically deleted. Favorites first, then by title. */
+    @Query("SELECT * FROM games WHERE isDeleted = 0 ORDER BY isFavorite DESC, title ASC")
     fun getAllNotDeleted(): Flow<List<GameEntity>>
 
-    /** Search by title or genre (suggestions / filter). Only non-deleted. */
+    /** Search by title or genre (suggestions / filter). Only non-deleted. Favorites first. */
     @Query("""
         SELECT * FROM games 
         WHERE isDeleted = 0 
         AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
-        ORDER BY title ASC
+        ORDER BY isFavorite DESC, title ASC
     """)
     fun searchNotDeleted(query: String): Flow<List<GameEntity>>
 
@@ -76,6 +76,10 @@ interface GameDao {
     /** Mark games as favorite. */
     @Query("UPDATE games SET isFavorite = 1 WHERE id IN (:ids)")
     suspend fun markFavorite(ids: List<Int>)
+
+    /** Remove games from favorites. */
+    @Query("UPDATE games SET isFavorite = 0 WHERE id IN (:ids)")
+    suspend fun markUnfavorite(ids: List<Int>)
 
     /** Used on sync: get current isDeleted and isFavorite per id so we don't overwrite user data. */
     @Query("SELECT id, isDeleted, isFavorite FROM games")

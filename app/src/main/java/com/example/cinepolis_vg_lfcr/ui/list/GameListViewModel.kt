@@ -9,6 +9,7 @@ import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGameDeletedUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesDeletedUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesFavoriteUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesUnfavoriteUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchDeletedGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchFavoriteGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
@@ -60,6 +61,7 @@ class GameListViewModel @Inject constructor(
     private val markGameDeletedUseCase: MarkGameDeletedUseCase,
     private val markGamesDeletedUseCase: MarkGamesDeletedUseCase,
     private val markGamesFavoriteUseCase: MarkGamesFavoriteUseCase,
+    private val markGamesUnfavoriteUseCase: MarkGamesUnfavoriteUseCase,
     private val viewModePreferences: ViewModePreferences
 ) : ViewModel() {
 
@@ -204,11 +206,31 @@ class GameListViewModel @Inject constructor(
         }
     }
 
+    fun toggleGameFavorite(game: Game) {
+        viewModelScope.launch {
+            val ids = listOf(game.id)
+            if (game.isFavorite) {
+                runCatching { markGamesUnfavoriteUseCase(ids) }
+            } else {
+                runCatching { markGamesFavoriteUseCase(ids) }
+            }
+        }
+    }
+
     fun bulkMarkFavoriteSelected() {
         val ids = _state.value.selectedGameIds.toList()
         if (ids.isEmpty()) return
         viewModelScope.launch {
             runCatching { markGamesFavoriteUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+    }
+
+    fun bulkUnfavoriteSelected() {
+        val ids = _state.value.selectedGameIds.toList()
+        if (ids.isEmpty()) return
+        viewModelScope.launch {
+            runCatching { markGamesUnfavoriteUseCase(ids) }
                 .onSuccess { exitSelectionMode() }
         }
     }

@@ -72,4 +72,8 @@ class GameRepositoryImpl @Inject constructor(
     override suspend fun markGamesFavorite(ids: List<Int>) {
         if (ids.isNotEmpty()) dao.markFavorite(ids)
     }
+
+    override suspend fun markGamesUnfavorite(ids: List<Int>) {
+        if (ids.isNotEmpty()) dao.markUnfavorite(ids)
+    }
 }

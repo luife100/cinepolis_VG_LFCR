@@ -24,9 +24,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.filled.ViewList
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -155,15 +157,28 @@ fun GameListScreen(
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         if (state.selectedGameIds.isNotEmpty()) {
-                            Button(
-                                onClick = viewModel::bulkMarkFavoriteSelected,
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                                )
-                            ) {
-                                Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.size(4.dp))
-                                Text("Favorites")
+                            if (state.listType == ListType.Favorites) {
+                                Button(
+                                    onClick = viewModel::bulkUnfavoriteSelected,
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Unfavorite")
+                                }
+                            } else {
+                                Button(
+                                    onClick = viewModel::bulkMarkFavoriteSelected,
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Favorites")
+                                }
                             }
                             Button(
                                 onClick = viewModel::showBulkDeleteConfirmation,
@@ -214,7 +229,8 @@ fun GameListScreen(
                                     if (state.selectionMode) viewModel.toggleGameSelection(game.id)
                                     else viewModel.setSelectedGame(game)
                                 },
-                                onLongClick = { viewModel.enterSelectionMode(game.id) }
+                                onLongClick = { viewModel.enterSelectionMode(game.id) },
+                                onFavoriteClick = { viewModel.toggleGameFavorite(game) }
                             )
                         }
                     }
@@ -237,7 +253,8 @@ fun GameListScreen(
                                     if (state.selectionMode) viewModel.toggleGameSelection(game.id)
                                     else viewModel.setSelectedGame(game)
                                 },
-                                onLongClick = { viewModel.enterSelectionMode(game.id) }
+                                onLongClick = { viewModel.enterSelectionMode(game.id) },
+                                onFavoriteClick = { viewModel.toggleGameFavorite(game) }
                             )
                         }
                     }
@@ -309,7 +326,8 @@ private fun GridGameItem(
     isSelectionMode: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    onFavoriteClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -337,14 +355,26 @@ private fun GridGameItem(
                     )
                 }
             }
-            AsyncImage(
-                model = game.thumbnail,
-                contentDescription = game.title,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(120.dp),
-                contentScale = ContentScale.Crop
-            )
+            Box(modifier = Modifier.fillMaxWidth()) {
+                AsyncImage(
+                    model = game.thumbnail,
+                    contentDescription = game.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentScale = ContentScale.Crop
+                )
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = if (game.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = if (game.isFavorite) "Unfavorite" else "Favorite",
+                        tint = if (game.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
             Text(
                 text = game.title,
                 style = MaterialTheme.typography.titleSmall,
@@ -365,7 +395,8 @@ private fun GameItem(
     isSelectionMode: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    onFavoriteClick: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -380,20 +411,21 @@ private fun GameItem(
             else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
         )
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (isSelectionMode) {
-                Icon(
-                    imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
-                    contentDescription = if (isSelected) "Selected" else "Not selected"
-                )
-                Spacer(modifier = Modifier.size(8.dp))
-            }
-            AsyncImage(
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isSelectionMode) {
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                        contentDescription = if (isSelected) "Selected" else "Not selected"
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+                AsyncImage(
                 model = game.thumbnail,
                 contentDescription = game.title,
                 modifier = Modifier.size(72.dp),
@@ -426,6 +458,17 @@ private fun GameItem(
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            IconButton(
+                onClick = onFavoriteClick,
+                modifier = Modifier
+            ) {
+                Icon(
+                    imageVector = if (game.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (game.isFavorite) "Unfavorite" else "Favorite",
+                    tint = if (game.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         }
     }
 }
