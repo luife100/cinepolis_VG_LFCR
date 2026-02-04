@@ -7,6 +7,7 @@ import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGameDeletedUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
+import com.example.cinepolis_vg_lfcr.data.preferences.ViewModePreferences
 import com.example.cinepolis_vg_lfcr.domain.usecase.UpdateGameUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,12 +22,15 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+enum class ViewMode { List, Grid }
+
 data class GameListUiState(
     val games: List<Game> = emptyList(),
     val searchQuery: String = "",
     val isRefreshing: Boolean = false,
     val refreshError: String? = null,
-    val selectedGame: Game? = null
+    val selectedGame: Game? = null,
+    val viewMode: ViewMode = ViewMode.List
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,7 +40,8 @@ class GameListViewModel @Inject constructor(
     private val searchGamesUseCase: SearchGamesUseCase,
     private val syncGamesUseCase: SyncGamesUseCase,
     private val updateGameUseCase: UpdateGameUseCase,
-    private val markGameDeletedUseCase: MarkGameDeletedUseCase
+    private val markGameDeletedUseCase: MarkGameDeletedUseCase,
+    private val viewModePreferences: ViewModePreferences
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(GameListUiState())
@@ -52,6 +57,13 @@ class GameListViewModel @Inject constructor(
             }
             .onEach { games ->
                 _state.update { it.copy(games = games) }
+            }
+            .launchIn(viewModelScope)
+
+        viewModePreferences.viewModeValue
+            .onEach { value ->
+                val mode = if (value == "Grid") ViewMode.Grid else ViewMode.List
+                _state.update { it.copy(viewMode = mode) }
             }
             .launchIn(viewModelScope)
     }
@@ -81,6 +93,15 @@ class GameListViewModel @Inject constructor(
 
     fun setSelectedGame(game: Game?) {
         _state.update { it.copy(selectedGame = game) }
+    }
+
+    fun setViewMode(mode: ViewMode) {
+        _state.update { it.copy(viewMode = mode) }
+        viewModelScope.launch {
+            viewModePreferences.setViewModeValue(
+                when (mode) { ViewMode.List -> "List"; ViewMode.Grid -> "Grid" }
+            )
+        }
     }
 
     fun clearSelection() {
