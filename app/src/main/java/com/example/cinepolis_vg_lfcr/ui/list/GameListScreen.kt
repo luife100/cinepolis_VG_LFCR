@@ -106,119 +106,118 @@ fun GameListScreen(
             }
         }
     ) { padding ->
-        Box(modifier = Modifier.padding(padding)) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    value = state.searchQuery,
-                    onValueChange = viewModel::updateSearchQuery,
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("Search by name or category") },
-                    leadingIcon = {
-                        Icon(Icons.Default.Search, contentDescription = null)
-                    },
-                    singleLine = true,
-                    colors = TextFieldDefaults.colors(
-                        focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                        focusedIndicatorColor = MaterialTheme.colorScheme.primary,
-                        unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
-                    )
-                )
-                IconButton(
-                    onClick = {
-                        viewModel.setViewMode(
-                            if (state.viewMode == ViewMode.List) ViewMode.Grid else ViewMode.List
-                        )
-                    },
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = if (state.viewMode == ViewMode.List) Icons.Default.GridView else Icons.Default.ViewList,
-                        contentDescription = if (state.viewMode == ViewMode.List) "Switch to grid view" else "Switch to list view"
-                    )
-                }
-            }
-
-            if (state.selectionMode) {
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (state.selectedGameIds.isEmpty()) "Select items" else "${state.selectedGameIds.size} selected",
-                        style = MaterialTheme.typography.bodyMedium
+                    TextField(
+                        value = state.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("Search by name or category") },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = null)
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                        )
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        if (state.selectedGameIds.isNotEmpty()) {
-                            if (state.listType == ListType.Favorites) {
-                                Button(
-                                    onClick = viewModel::bulkUnfavoriteSelected,
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                                    )
-                                ) {
-                                    Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Unfavorite")
+                    IconButton(
+                        onClick = {
+                            viewModel.setViewMode(
+                                if (state.viewMode == ViewMode.List) ViewMode.Grid else ViewMode.List
+                            )
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (state.viewMode == ViewMode.List) Icons.Default.GridView else Icons.Default.ViewList,
+                            contentDescription = if (state.viewMode == ViewMode.List) "Switch to grid view" else "Switch to list view"
+                        )
+                    }
+                }
+
+                if (state.selectionMode) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (state.selectedGameIds.isEmpty()) "Select items" else "${state.selectedGameIds.size} selected",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (state.selectedGameIds.isNotEmpty()) {
+                                if (state.listType == ListType.Favorites) {
+                                    Button(
+                                        onClick = viewModel::bulkUnfavoriteSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text("Unfavorite")
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = viewModel::bulkMarkFavoriteSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text("Favorites")
+                                    }
                                 }
-                            } else {
-                                Button(
-                                    onClick = viewModel::bulkMarkFavoriteSelected,
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                                    )
-                                ) {
-                                    Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Favorites")
+                                if (state.listType == ListType.Deleted) {
+                                    Button(
+                                        onClick = viewModel::bulkRestoreSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text("Recover")
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = viewModel::showBulkDeleteConfirmation,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.errorContainer
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text("Delete")
+                                    }
                                 }
                             }
-                            if (state.listType == ListType.Deleted) {
-                                Button(
-                                    onClick = viewModel::bulkRestoreSelected,
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer
-                                    )
-                                ) {
-                                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Recover")
-                                }
-                            } else {
-                                Button(
-                                    onClick = viewModel::showBulkDeleteConfirmation,
-                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                        containerColor = MaterialTheme.colorScheme.errorContainer
-                                    )
-                                ) {
-                                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                                    Spacer(modifier = Modifier.size(4.dp))
-                                    Text("Delete")
-                                }
+                            TextButton(onClick = viewModel::exitSelectionMode) {
+                                Text("Cancel")
                             }
-                        }
-                        TextButton(onClick = viewModel::exitSelectionMode) {
-                            Text("Cancel")
                         }
                     }
                 }
-            }
 
-            PullToRefreshBox(
-                isRefreshing = state.isRefreshing,
-                onRefresh = viewModel::onPullToRefresh,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 64.dp)
-            ) {
+                PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = viewModel::onPullToRefresh,
+                    modifier = Modifier.weight(1f)
+                ) {
                 state.refreshError?.let { error ->
                     Text(
                         text = error,
@@ -272,6 +271,7 @@ fun GameListScreen(
                             )
                         }
                     }
+                }
                 }
             }
 
