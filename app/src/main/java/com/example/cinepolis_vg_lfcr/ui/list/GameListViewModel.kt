@@ -7,6 +7,7 @@ import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
 import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,6 +26,7 @@ data class GameListUiState(
     val refreshError: String? = null
 )
 
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class GameListViewModel @Inject constructor(
     private val getGamesUseCase: GetGamesUseCase,

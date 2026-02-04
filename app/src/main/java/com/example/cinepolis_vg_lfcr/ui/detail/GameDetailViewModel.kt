@@ -30,8 +30,7 @@ class GameDetailViewModel @Inject constructor(
     private val markGameDeletedUseCase: MarkGameDeletedUseCase
 ) : ViewModel() {
 
-    private val gameId: Int = checkNotNull(savedStateHandle.get<String>("gameId")?.toIntOrNull()) { "gameId is required" }
-
+    private val gameId: Int = savedStateHandle["gameId"] ?: 0
     private val _state = MutableStateFlow(GameDetailUiState())
     val state: StateFlow<GameDetailUiState> = _state.asStateFlow()
 
