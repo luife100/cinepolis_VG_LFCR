@@ -12,7 +12,8 @@ object BotpressConfig {
     // Your Personal Access Token (Keep this safe!)
     const val API_KEY = "bp_bak_DNOPU8NtqVyjy8Um1F_aCyIS2NUzuzxP42pT"
 
-    const val BASE_URL = "https://chat.botpress.cloud/v1/" // Added v1 for the Chat API
+    // First path segment must be the webhook ID (not "v1"); server uses it to find the integration
+    const val BASE_URL = "https://chat.botpress.cloud/"
 
     // Header KEY NAMES (The labels on the envelopes)
     const val HEADER_AUTHORIZATION = "Authorization"

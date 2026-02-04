@@ -46,17 +46,37 @@ data class ConversationDto(
     @SerializedName("id") val id: String? = null
 )
 
-/** Request body for POST .../messages */
+/** Request body for POST .../messages: requires conversationId and payload. */
 data class SendMessageRequest(
+    @SerializedName("conversationId") val conversationId: String,
+    @SerializedName("payload") val payload: MessagePayload
+)
+
+data class MessagePayload(
     @SerializedName("type") val type: String = "text",
     @SerializedName("text") val text: String
 )
 
-/** SSE event payload - adapt fields based on actual Botpress event shape */
+/** SSE event: type + data (Botpress sends message_created with data.payload.text). */
 data class BotpressEvent(
     @SerializedName("type") val type: String? = null,
+    @SerializedName("data") val data: SseMessageData? = null,
     @SerializedName("payload") val payload: EventPayload? = null,
     @SerializedName("message") val message: String? = null,
+    @SerializedName("text") val text: String? = null
+)
+
+/** Nested under event.data for message_created. */
+data class SseMessageData(
+    @SerializedName("id") val id: String? = null,
+    @SerializedName("conversationId") val conversationId: String? = null,
+    @SerializedName("userId") val userId: String? = null,
+    @SerializedName("payload") val payload: SseMessagePayload? = null,
+    @SerializedName("isBot") val isBot: Boolean? = null
+)
+
+data class SseMessagePayload(
+    @SerializedName("type") val type: String? = null,
     @SerializedName("text") val text: String? = null
 )
 

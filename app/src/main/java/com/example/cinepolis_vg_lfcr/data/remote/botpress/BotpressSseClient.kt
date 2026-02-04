@@ -1,5 +1,6 @@
 package com.example.cinepolis_vg_lfcr.data.remote.botpress
 
+import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,28 +19,43 @@ import javax.inject.Inject
  * Listens to Botpress SSE events endpoint and parses "data:" lines as [BotpressEvent].
  * Run the returned flow in a coroutine scope; the connection stays open until cancelled.
  */
+private const val TAG = "Botpress"
+
 class BotpressSseClient @Inject constructor(
     private val okHttpClient: OkHttpClient,
     private val gson: Gson
 ) {
-    fun events(webhookId: String, apiKey: String): Flow<BotpressEvent> = callbackFlow {
-        val url = "${BotpressConfig.BASE_URL}$webhookId/events"
+    /**
+     * Listens to conversation SSE: GET .../conversations/{conversationId}/listen
+     * Use the conversation id from createConversation so bot replies are received.
+     */
+    fun listenConversation(webhookId: String, conversationId: String, userKey: String): Flow<BotpressEvent> = callbackFlow {
+        if (conversationId.isBlank()) {
+            awaitClose { }
+            return@callbackFlow
+        }
+        val url = "${BotpressConfig.BASE_URL}$webhookId/conversations/$conversationId/listen"
+        Log.d(TAG, "SSE listen url=$url")
         val request = Request.Builder()
             .url(url)
-            .addHeader(BotpressConfig.HEADER_USER_KEY, apiKey)
+            .addHeader(BotpressConfig.HEADER_USER_KEY, userKey)
             .get()
             .build()
 
         val call = okHttpClient.newCall(request)
         @Suppress("BlockingMethodInNonBlockingContext")
         val response = withContext(Dispatchers.IO) { call.execute() }
+        Log.d(TAG, "SSE connect: code=${response.code} message=${response.message}")
         if (!response.isSuccessful) {
+            val errBody = response.body?.string() ?: ""
+            Log.e(TAG, "SSE failed body=$errBody")
             close(Throwable("SSE failed: ${response.code} ${response.message}"))
             awaitClose { }
             return@callbackFlow
         }
         val body = response.body
         if (body == null) {
+            Log.e(TAG, "SSE empty body")
             close(Throwable("SSE empty body"))
             awaitClose { }
             return@callbackFlow
@@ -51,11 +67,15 @@ class BotpressSseClient @Inject constructor(
                         val line = reader.readLine() ?: break
                         if (line.startsWith("data:")) {
                             val json = line.removePrefix("data:").trim()
+                            Log.d(TAG, "SSE data: $json")
                             if (json.isEmpty() || json == "[DONE]") continue
                             try {
                                 val event = gson.fromJson(json, BotpressEvent::class.java)
+                                Log.d(TAG, "SSE parsed event: type=${event.type} payload=${event.payload} text=${event.text} message=${event.message}")
                                 trySend(event)
-                            } catch (_: Exception) { /* skip unparseable */ }
+                            } catch (e: Exception) {
+                                Log.w(TAG, "SSE parse failed: $json", e)
+                            }
                         }
                     }
                 }

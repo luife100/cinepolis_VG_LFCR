@@ -1,5 +1,6 @@
 package com.example.cinepolis_vg_lfcr.di
 
+import android.util.Log
 import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressApi
 import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressConfig
 import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressSseClient
@@ -20,6 +21,8 @@ import com.google.gson.Gson
 @InstallIn(SingletonComponent::class)
 object BotpressModule {
 
+    private const val BOTPRESS_LOG_TAG = "Botpress"
+
     @Provides
     @Singleton
     @BotpressClient
@@ -32,6 +35,15 @@ object BotpressModule {
                     .addHeader("Content-Type", "application/json")
                     .build()
             )
+        }
+        .addInterceptor { chain ->
+            val response = chain.proceed(chain.request())
+            val path = response.request.url.encodedPath
+            if (!path.contains("listen") && response.body != null && (path.contains("users") || path.contains("conversations") || path.contains("messages"))) {
+                val rawBody = response.peekBody(Long.MAX_VALUE).string()
+                Log.d(BOTPRESS_LOG_TAG, "API raw response [$path]: $rawBody")
+            }
+            response
         }
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(120, TimeUnit.SECONDS)

@@ -18,7 +18,7 @@ interface BotpressApi {
         @Body body: CreateConversationRequest = CreateConversationRequest()
     ): Response<ConversationResponse>
 
-    /** Requires x-user-key header. */
+    /** Requires x-user-key header and body with conversationId + payload. */
     @POST("messages")
     suspend fun sendMessage(
         @Header("x-user-key") userKey: String,
