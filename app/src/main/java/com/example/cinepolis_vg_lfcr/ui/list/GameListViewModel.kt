@@ -33,7 +33,7 @@ import javax.inject.Inject
 
 enum class ViewMode { List, Grid }
 
-enum class ListType { Main, Favorites, Deleted }
+enum class ListType { Main, Favorites, Deleted, Assistant }
 
 data class GameListUiState(
     val games: List<Game> = emptyList(),
@@ -83,6 +83,8 @@ class GameListViewModel @Inject constructor(
                         if (query.isBlank()) getFavoriteGamesUseCase() else searchFavoriteGamesUseCase(query)
                     ListType.Deleted ->
                         if (query.isBlank()) getDeletedGamesUseCase() else searchDeletedGamesUseCase(query)
+                    ListType.Assistant ->
+                        flowOf(emptyList())
                 }
             }
             .onEach { games ->

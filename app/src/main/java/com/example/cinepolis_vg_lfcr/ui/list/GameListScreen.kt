@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HeadsetMic
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Delete
@@ -61,6 +62,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.ui.assistant.AssistantScreen
 import com.example.cinepolis_vg_lfcr.ui.detail.GameDetailContent
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -74,6 +76,7 @@ fun GameListScreen(
         ListType.Main -> "Game Catalog"
         ListType.Favorites -> "Favorites"
         ListType.Deleted -> "Deleted"
+        ListType.Assistant -> "Assistant"
     }
     Scaffold(
         topBar = {
@@ -103,10 +106,19 @@ fun GameListScreen(
                     selected = state.listType == ListType.Deleted,
                     onClick = { viewModel.setListType(ListType.Deleted) }
                 )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.HeadsetMic, contentDescription = null) },
+                    label = { Text("Chat") },
+                    selected = state.listType == ListType.Assistant,
+                    onClick = { viewModel.setListType(ListType.Assistant) }
+                )
             }
         }
     ) { padding ->
         Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            if (state.listType == ListType.Assistant) {
+                AssistantScreen()
+            } else {
             Column(modifier = Modifier.fillMaxSize()) {
                 Row(
                     modifier = Modifier
@@ -277,6 +289,7 @@ fun GameListScreen(
                     }
                 }
                 }
+            }
             }
 
             if (state.showBulkDeleteConfirmation) {
