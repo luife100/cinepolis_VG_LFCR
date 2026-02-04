@@ -20,7 +20,7 @@ fun VgNavGraph(
             LoadingScreen(navController = navController)
         }
         composable(Routes.List) {
-            GameListScreen(navController = navController)
+            GameListScreen()
         }
     }
 }
