@@ -26,6 +26,7 @@ import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Restore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -180,15 +181,28 @@ fun GameListScreen(
                                     Text("Favorites")
                                 }
                             }
-                            Button(
-                                onClick = viewModel::showBulkDeleteConfirmation,
-                                colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.errorContainer
-                                )
-                            ) {
-                                Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.size(4.dp))
-                                Text("Delete")
+                            if (state.listType == ListType.Deleted) {
+                                Button(
+                                    onClick = viewModel::bulkRestoreSelected,
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Recover")
+                                }
+                            } else {
+                                Button(
+                                    onClick = viewModel::showBulkDeleteConfirmation,
+                                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.errorContainer
+                                    )
+                                ) {
+                                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.size(4.dp))
+                                    Text("Delete")
+                                }
                             }
                         }
                         TextButton(onClick = viewModel::exitSelectionMode) {

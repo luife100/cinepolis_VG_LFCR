@@ -73,6 +73,10 @@ interface GameDao {
     @Query("UPDATE games SET isDeleted = 1 WHERE id IN (:ids)")
     suspend fun markDeleted(ids: List<Int>)
 
+    /** Restore logically deleted games (set isDeleted = 0). */
+    @Query("UPDATE games SET isDeleted = 0 WHERE id IN (:ids)")
+    suspend fun markUndeleted(ids: List<Int>)
+
     /** Mark games as favorite. */
     @Query("UPDATE games SET isFavorite = 1 WHERE id IN (:ids)")
     suspend fun markFavorite(ids: List<Int>)

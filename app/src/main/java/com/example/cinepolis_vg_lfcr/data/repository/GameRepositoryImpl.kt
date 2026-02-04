@@ -69,6 +69,10 @@ class GameRepositoryImpl @Inject constructor(
         if (ids.isNotEmpty()) dao.markDeleted(ids)
     }
 
+    override suspend fun markGamesUndeleted(ids: List<Int>) {
+        if (ids.isNotEmpty()) dao.markUndeleted(ids)
+    }
+
     override suspend fun markGamesFavorite(ids: List<Int>) {
         if (ids.isNotEmpty()) dao.markFavorite(ids)
     }
