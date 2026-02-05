@@ -18,17 +18,21 @@ A modern Android app to browse a catalog of free-to-play video games, manage fav
 
 Screenshots from the app:
 
-| List view | Grid view | Start screen |
-|-----------|-----------|--------------|
-| ![List view](docs/app-screenshots/list-view.webp) | ![Grid view](docs/app-screenshots/gridview.webp) | ![Start screen](docs/app-screenshots/startscreen.webp) |
+| Start screen | List view | Grid view |
+|--------------|-----------|-----------|
+| ![Start screen](docs/app-screenshots/startscreen.webp) | ![List view](docs/app-screenshots/list-view.webp) | ![Grid view](docs/app-screenshots/gridview.webp) |
 
 | Favorites section | Deleted section | Detail view |
 |-------------------|-----------------|-------------|
 | ![Favorites section](docs/app-screenshots/favoritessection.webp) | ![Deleted section](docs/app-screenshots/deletedsection.webp) | ![Detail view](docs/app-screenshots/detailview.webp) |
 
-| Assistant | Assistant (chat) | Multiselection | Delete feature |
-|-----------|------------------|----------------|----------------|
-| ![Assistant](docs/app-screenshots/assistant.webp) | ![Assistant chat](docs/app-screenshots/assistant2.webp) | ![Multiselection](docs/app-screenshots/multiselection.webp) | ![Delete feature](docs/app-screenshots/deletefeature.webp) |
+| Multiselection | Delete feature |
+|----------------|----------------|
+| ![Multiselection](docs/app-screenshots/multiselection.webp) | ![Delete feature](docs/app-screenshots/deletefeature.webp) |
+
+| Assistant | Assistant (chat) |
+|-----------|------------------|
+| ![Assistant](docs/app-screenshots/assistant.webp) | ![Assistant chat](docs/app-screenshots/assistant2.webp) |
 
 ---
 

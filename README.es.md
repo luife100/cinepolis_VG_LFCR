@@ -18,17 +18,21 @@ Aplicación Android para consultar un catálogo de videojuegos gratuitos, gestio
 
 Capturas de la aplicación:
 
-| Vista lista | Vista cuadrícula | Pantalla de inicio |
-|-------------|------------------|-------------------|
-| ![Vista lista](docs/app-screenshots/list-view.webp) | ![Vista cuadrícula](docs/app-screenshots/gridview.webp) | ![Pantalla de inicio](docs/app-screenshots/startscreen.webp) |
+| Pantalla de inicio | Vista lista | Vista cuadrícula |
+|--------------------|-------------|------------------|
+| ![Pantalla de inicio](docs/app-screenshots/startscreen.webp) | ![Vista lista](docs/app-screenshots/list-view.webp) | ![Vista cuadrícula](docs/app-screenshots/gridview.webp) |
 
 | Sección favoritos | Sección eliminados | Vista detalle |
 |-------------------|--------------------|---------------|
 | ![Sección favoritos](docs/app-screenshots/favoritessection.webp) | ![Sección eliminados](docs/app-screenshots/deletedsection.webp) | ![Vista detalle](docs/app-screenshots/detailview.webp) |
 
-| Asistente | Asistente (chat) | Multiselección | Función eliminar |
-|------------|------------------|----------------|------------------|
-| ![Asistente](docs/app-screenshots/assistant.webp) | ![Asistente chat](docs/app-screenshots/assistant2.webp) | ![Multiselección](docs/app-screenshots/multiselection.webp) | ![Función eliminar](docs/app-screenshots/deletefeature.webp) |
+| Multiselección | Función eliminar |
+|----------------|------------------|
+| ![Multiselección](docs/app-screenshots/multiselection.webp) | ![Función eliminar](docs/app-screenshots/deletefeature.webp) |
+
+| Asistente | Asistente (chat) |
+|------------|------------------|
+| ![Asistente](docs/app-screenshots/assistant.webp) | ![Asistente chat](docs/app-screenshots/assistant2.webp) |
 
 ---
 
