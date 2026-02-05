@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.android)
+    jacoco
 }
 kotlin {
     jvmToolchain(17)
@@ -26,6 +27,9 @@ android {
     }
 
     buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
@@ -83,4 +87,37 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     implementation(libs.androidx.material3.adaptive.navigation.suite)
+}
+
+// JaCoCo: unit test coverage report (HTML + XML)
+tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoUnitTestReport") {
+    group = "verification"
+    description = "Generates JaCoCo coverage report for unit tests"
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+        html.outputLocation.set(layout.buildDirectory.dir("reports/jacoco/jacocoUnitTestReport/html"))
+        xml.outputLocation.set(layout.buildDirectory.file("reports/jacoco/jacocoUnitTestReport/jacocoUnitTestReport.xml"))
+    }
+
+    val excludes = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.class",
+        "**/Manifest*.class",
+        "**/*_Impl*.class",
+        "**/ComposableSingletons*.class",
+        "**/*$*.class",
+        "**/*.jar"
+    )
+    // Kotlin output only: single copy of each class (intermediates/classes has merged+transformed = duplicates)
+    val buildDir = layout.buildDirectory.get().asFile
+    val kotlinClasses = fileTree("$buildDir/tmp/kotlin-classes/debug") { exclude(excludes) }
+    classDirectories.from(kotlinClasses)
+    sourceDirectories.from(files("src/main/java", "src/main/kotlin"))
+    executionData.from(
+        file("$buildDir/outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    )
 }
