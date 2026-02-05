@@ -18,17 +18,17 @@ A modern Android app to browse a catalog of free-to-play video games, manage fav
 
 Screenshots from the app:
 
-| Game catalog (list) | Game catalog (grid) | Search |
-|---------------------|---------------------|--------|
-| ![Game list](docs/app-screenshots/Screenshot_20260204-173943.webp) | ![Game grid](docs/app-screenshots/Screenshot_20260204-183721.webp) | ![Search](docs/app-screenshots/Screenshot_20260204-183739.webp) |
+| List view | Grid view | Start screen |
+|-----------|-----------|--------------|
+| ![List view](docs/app-screenshots/list-view.webp) | ![Grid view](docs/app-screenshots/gridview.webp) | ![Start screen](docs/app-screenshots/startscreen.webp) |
 
-| Favorites / Deleted | Game detail | Chat assistant |
-|---------------------|-------------|----------------|
-| ![Favorites](docs/app-screenshots/Screenshot_20260204-191719.webp) | ![Detail](docs/app-screenshots/Screenshot_20260204-191736.webp) | ![Assistant](docs/app-screenshots/Screenshot_20260205-120652.webp) |
+| Favorites section | Deleted section | Detail view |
+|-------------------|-----------------|-------------|
+| ![Favorites section](docs/app-screenshots/favoritessection.webp) | ![Deleted section](docs/app-screenshots/deletedsection.webp) | ![Detail view](docs/app-screenshots/detailview.webp) |
 
-| Loading | Assistant chat |
-|---------|-----------------|
-| ![Loading](docs/app-screenshots/Screenshot_20260205-120713.webp) | ![Chat](docs/app-screenshots/Screenshot_20260205-120846.webp) |
+| Assistant | Assistant (chat) | Multiselection | Delete feature |
+|-----------|------------------|----------------|----------------|
+| ![Assistant](docs/app-screenshots/assistant.webp) | ![Assistant chat](docs/app-screenshots/assistant2.webp) | ![Multiselection](docs/app-screenshots/multiselection.webp) | ![Delete feature](docs/app-screenshots/deletefeature.webp) |
 
 ---
 
@@ -71,8 +71,6 @@ The project includes unit tests for ViewModels, use cases, repositories, mappers
 Coverage report screenshot:
 
 ![JaCoCo unit test coverage report](docs/unit-testing-report/coverage-report.png)
-
-*(Add a screenshot of the JaCoCo report as `docs/unit-testing-report/coverage-report.png` to display it here.)*
 
 To generate the report locally:
 

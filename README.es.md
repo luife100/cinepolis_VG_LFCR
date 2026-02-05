@@ -18,17 +18,17 @@ Aplicación Android para consultar un catálogo de videojuegos gratuitos, gestio
 
 Capturas de la aplicación:
 
-| Catálogo (lista) | Catálogo (cuadrícula) | Búsqueda |
-|------------------|------------------------|----------|
-| ![Lista de juegos](docs/app-screenshots/Screenshot_20260204-173943.webp) | ![Cuadrícula](docs/app-screenshots/Screenshot_20260204-183721.webp) | ![Búsqueda](docs/app-screenshots/Screenshot_20260204-183739.webp) |
+| Vista lista | Vista cuadrícula | Pantalla de inicio |
+|-------------|------------------|-------------------|
+| ![Vista lista](docs/app-screenshots/list-view.webp) | ![Vista cuadrícula](docs/app-screenshots/gridview.webp) | ![Pantalla de inicio](docs/app-screenshots/startscreen.webp) |
 
-| Favoritos / Eliminados | Detalle del juego | Asistente de chat |
-|------------------------|-------------------|-------------------|
-| ![Favoritos](docs/app-screenshots/Screenshot_20260204-191719.webp) | ![Detalle](docs/app-screenshots/Screenshot_20260204-191736.webp) | ![Asistente](docs/app-screenshots/Screenshot_20260205-120652.webp) |
+| Sección favoritos | Sección eliminados | Vista detalle |
+|-------------------|--------------------|---------------|
+| ![Sección favoritos](docs/app-screenshots/favoritessection.webp) | ![Sección eliminados](docs/app-screenshots/deletedsection.webp) | ![Vista detalle](docs/app-screenshots/detailview.webp) |
 
-| Carga | Chat del asistente |
-|-------|--------------------|
-| ![Carga](docs/app-screenshots/Screenshot_20260205-120713.webp) | ![Chat](docs/app-screenshots/Screenshot_20260205-120846.webp) |
+| Asistente | Asistente (chat) | Multiselección | Función eliminar |
+|------------|------------------|----------------|------------------|
+| ![Asistente](docs/app-screenshots/assistant.webp) | ![Asistente chat](docs/app-screenshots/assistant2.webp) | ![Multiselección](docs/app-screenshots/multiselection.webp) | ![Función eliminar](docs/app-screenshots/deletefeature.webp) |
 
 ---
 
@@ -71,8 +71,6 @@ El proyecto incluye pruebas unitarias para ViewModels, casos de uso, repositorio
 Captura del informe de cobertura:
 
 ![Informe de cobertura JaCoCo](docs/unit-testing-report/coverage-report.png)
-
-*(Añade una captura del informe JaCoCo como `docs/unit-testing-report/coverage-report.png` para mostrarla aquí.)*
 
 Para generar el informe en local:
 
