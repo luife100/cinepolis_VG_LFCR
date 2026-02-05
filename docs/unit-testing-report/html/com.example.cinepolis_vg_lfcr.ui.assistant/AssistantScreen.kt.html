@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AssistantScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.ui.assistant</a> &gt; <span class="el_source">AssistantScreen.kt</span></div><h1>AssistantScreen.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.ui.assistant
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+
+@Composable
+fun AssistantScreen(
+<span class="nc" id="L38">    viewModel: AssistantViewModel = hiltViewModel()</span>
+<span class="nc bnc" id="L39" title="All 6 branches missed.">) {</span>
+<span class="nc" id="L40">    val state by viewModel.state.collectAsState()</span>
+<span class="nc" id="L41">    val listState = rememberLazyListState()</span>
+
+<span class="nc" id="L43">    LaunchedEffect(state.messages.size) {</span>
+        if (state.messages.isNotEmpty()) {
+            listState.animateScrollToItem(state.messages.size - 1)
+        }
+    }
+
+<span class="nc" id="L49">    Column(</span>
+<span class="nc" id="L50">        modifier = Modifier</span>
+<span class="nc" id="L51">            .fillMaxSize()</span>
+<span class="nc" id="L52">            .padding(16.dp)</span>
+    ) {
+<span class="nc bnc" id="L54" title="All 2 branches missed.">        if (state.error != null) {</span>
+<span class="nc" id="L55">            Text(</span>
+<span class="nc" id="L56">                text = state.error!!,</span>
+<span class="nc" id="L57">                color = MaterialTheme.colorScheme.error,</span>
+<span class="nc" id="L58">                style = MaterialTheme.typography.bodySmall,</span>
+<span class="nc" id="L59">                modifier = Modifier.padding(bottom = 8.dp)</span>
+            )
+        }
+<span class="nc bnc" id="L62" title="All 2 branches missed.">        if (state.isLoading) {</span>
+<span class="nc" id="L63">            Box(</span>
+<span class="nc" id="L64">                modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L65">                contentAlignment = Alignment.Center</span>
+            ) {
+<span class="nc" id="L67">                CircularProgressIndicator(modifier = Modifier.size(48.dp))</span>
+<span class="nc" id="L68">            }</span>
+<span class="nc" id="L69">        } else {</span>
+<span class="nc" id="L70">            LazyColumn(</span>
+<span class="nc" id="L71">                state = listState,</span>
+<span class="nc" id="L72">                modifier = Modifier.weight(1f),</span>
+<span class="nc" id="L73">                verticalArrangement = Arrangement.spacedBy(8.dp),</span>
+<span class="nc" id="L74">                contentPadding = PaddingValues(vertical = 8.dp)</span>
+<span class="nc" id="L75">            ) {</span>
+<span class="nc" id="L76">                items(</span>
+<span class="nc" id="L77">                    items = state.messages,</span>
+<span class="nc" id="L78">                    key = { it.id }</span>
+                ) { msg -&gt;
+                    ChatBubble(
+                        text = msg.text,
+                        isFromUser = msg.isFromUser
+                    )
+                }
+<span class="nc" id="L85">            }</span>
+<span class="nc" id="L86">            Row(</span>
+<span class="nc" id="L87">                modifier = Modifier</span>
+<span class="nc" id="L88">                    .fillMaxWidth()</span>
+<span class="nc" id="L89">                    .padding(top = 8.dp),</span>
+<span class="nc" id="L90">                verticalAlignment = Alignment.CenterVertically</span>
+            ) {
+<span class="nc" id="L92">                OutlinedTextField(</span>
+<span class="nc" id="L93">                    value = state.inputText,</span>
+<span class="nc" id="L94">                    onValueChange = viewModel::updateInputText,</span>
+<span class="nc" id="L95">                    modifier = Modifier.weight(1f),</span>
+                    placeholder = { Text(&quot;Type a message...&quot;) },
+<span class="nc" id="L97">                    enabled = state.conversationReady,</span>
+<span class="nc" id="L98">                    singleLine = true,</span>
+<span class="nc" id="L99">                    colors = OutlinedTextFieldDefaults.colors(</span>
+<span class="nc" id="L100">                        focusedBorderColor = MaterialTheme.colorScheme.primary,</span>
+<span class="nc" id="L101">                        unfocusedBorderColor = MaterialTheme.colorScheme.outline,</span>
+<span class="nc" id="L102">                        focusedContainerColor = MaterialTheme.colorScheme.surface,</span>
+<span class="nc" id="L103">                        unfocusedContainerColor = MaterialTheme.colorScheme.surface</span>
+                    )
+                )
+<span class="nc" id="L106">                IconButton(</span>
+<span class="nc" id="L107">                    onClick = viewModel::sendMessage,</span>
+<span class="nc bnc" id="L108" title="All 6 branches missed.">                    enabled = state.conversationReady &amp;&amp; state.inputText.isNotBlank()</span>
+                ) {
+                    Icon(
+                        Icons.Default.Send,
+                        contentDescription = &quot;Send&quot;,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+<span class="nc" id="L116">            }</span>
+        }
+<span class="nc" id="L118">    }</span>
+}
+
+@Composable
+private fun ChatBubble(
+    text: String,
+    isFromUser: Boolean
+<span class="nc" id="L125">) {</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">    val backgroundColor = if (isFromUser) {</span>
+<span class="nc" id="L127">        MaterialTheme.colorScheme.primaryContainer</span>
+<span class="nc" id="L128">    } else {</span>
+<span class="nc" id="L129">        MaterialTheme.colorScheme.surfaceVariant</span>
+    }
+<span class="nc" id="L131">    Row(</span>
+<span class="nc" id="L132">        modifier = Modifier.fillMaxWidth(),</span>
+<span class="nc bnc" id="L133" title="All 2 branches missed.">        horizontalArrangement = if (isFromUser) Arrangement.End else Arrangement.Start)</span>
+    {
+<span class="nc" id="L135">        Card(</span>
+<span class="nc" id="L136">            modifier = Modifier.padding(horizontal = 8.dp),</span>
+<span class="nc" id="L137">            shape = RoundedCornerShape(</span>
+<span class="nc" id="L138">                topStart = 16.dp,</span>
+<span class="nc" id="L139">                topEnd = 16.dp,</span>
+<span class="nc bnc" id="L140" title="All 2 branches missed.">                bottomStart = if (isFromUser) 16.dp else 4.dp,</span>
+<span class="nc bnc" id="L141" title="All 2 branches missed.">                bottomEnd = if (isFromUser) 4.dp else 16.dp</span>
+            ),
+<span class="nc" id="L143">            colors = CardDefaults.cardColors(containerColor = backgroundColor)</span>
+<span class="nc" id="L144">        ) {</span>
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+            )
+        }
+<span class="nc" id="L151">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

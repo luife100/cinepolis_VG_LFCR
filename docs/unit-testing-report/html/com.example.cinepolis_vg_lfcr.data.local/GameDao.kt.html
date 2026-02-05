@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameDao.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.local</a> &gt; <span class="el_source">GameDao.kt</span></div><h1>GameDao.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.local
+
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
+
+@Dao
+interface GameDao {
+
+    /** All games that are not logically deleted. Favorites first, then by title. */
+    @Query(&quot;SELECT * FROM games WHERE isDeleted = 0 ORDER BY isFavorite DESC, title ASC&quot;)
+    fun getAllNotDeleted(): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** Search by title or genre (suggestions / filter). Only non-deleted. Favorites first. */
+    @Query(&quot;&quot;&quot;
+        SELECT * FROM games 
+        WHERE isDeleted = 0 
+        AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
+        ORDER BY isFavorite DESC, title ASC
+    &quot;&quot;&quot;)
+    fun searchNotDeleted(query: String): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** All favorite games (not deleted). */
+    @Query(&quot;SELECT * FROM games WHERE isDeleted = 0 AND isFavorite = 1 ORDER BY title ASC&quot;)
+    fun getFavorites(): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** Search favorites by title or genre. */
+    @Query(&quot;&quot;&quot;
+        SELECT * FROM games 
+        WHERE isDeleted = 0 AND isFavorite = 1 
+        AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
+        ORDER BY title ASC
+    &quot;&quot;&quot;)
+    fun searchFavorites(query: String): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** All logically deleted games. */
+    @Query(&quot;SELECT * FROM games WHERE isDeleted = 1 ORDER BY title ASC&quot;)
+    fun getDeleted(): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** Search deleted games by title or genre. */
+    @Query(&quot;&quot;&quot;
+        SELECT * FROM games 
+        WHERE isDeleted = 1 
+        AND (title LIKE '%' || :query || '%' OR genre LIKE '%' || :query || '%')
+        ORDER BY title ASC
+    &quot;&quot;&quot;)
+    fun searchDeleted(query: String): Flow&lt;List&lt;GameEntity&gt;&gt;
+
+    /** Get single game by id (may be deleted). */
+    @Query(&quot;SELECT * FROM games WHERE id = :id&quot;)
+    suspend fun getById(id: Int): GameEntity?
+
+    /** Count of rows (to know if DB is empty). */
+    @Query(&quot;SELECT COUNT(*) FROM games&quot;)
+    suspend fun getCount(): Int
+
+    /** Insert or replace on conflict (id). Used when syncing from API. */
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAll(entities: List&lt;GameEntity&gt;)
+
+    /** Update existing row. When syncing from API we do NOT overwrite isDeleted. */
+    @Update
+    suspend fun update(entity: GameEntity)
+
+    /** Logical delete: set isDeleted = 1 for the given id. */
+    @Query(&quot;UPDATE games SET isDeleted = 1 WHERE id = :id&quot;)
+    suspend fun markDeleted(id: Int)
+
+    /** Bulk logical delete. */
+    @Query(&quot;UPDATE games SET isDeleted = 1 WHERE id IN (:ids)&quot;)
+    suspend fun markDeleted(ids: List&lt;Int&gt;)
+
+    /** Restore logically deleted games (set isDeleted = 0). */
+    @Query(&quot;UPDATE games SET isDeleted = 0 WHERE id IN (:ids)&quot;)
+    suspend fun markUndeleted(ids: List&lt;Int&gt;)
+
+    /** Mark games as favorite. */
+    @Query(&quot;UPDATE games SET isFavorite = 1 WHERE id IN (:ids)&quot;)
+    suspend fun markFavorite(ids: List&lt;Int&gt;)
+
+    /** Remove games from favorites. */
+    @Query(&quot;UPDATE games SET isFavorite = 0 WHERE id IN (:ids)&quot;)
+    suspend fun markUnfavorite(ids: List&lt;Int&gt;)
+
+    /** Used on sync: get current isDeleted and isFavorite per id so we don't overwrite user data. */
+    @Query(&quot;SELECT id, isDeleted, isFavorite FROM games&quot;)
+    suspend fun getAllIdDeletedFavorite(): List&lt;IdDeletedFavorite&gt;
+}
+
+<span class="nc" id="L93">data class IdAndDeleted(val id: Int, val isDeleted: Boolean)</span>
+<span class="fc" id="L94">data class IdDeletedFavorite(val id: Int, val isDeleted: Boolean, val isFavorite: Boolean)</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

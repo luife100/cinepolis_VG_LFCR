@@ -1,0 +1,506 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameListScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.ui.list</a> &gt; <span class="el_source">GameListScreen.kt</span></div><h1>GameListScreen.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.ui.list
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.HeadsetMic
+import androidx.compose.material.icons.filled.CheckBox
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.Restore
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.filled.ViewList
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import coil.compose.AsyncImage
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.ui.assistant.AssistantScreen
+import com.example.cinepolis_vg_lfcr.ui.detail.GameDetailContent
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GameListScreen(
+<span class="nc" id="L71">    viewModel: GameListViewModel = hiltViewModel()</span>
+<span class="nc bnc" id="L72" title="All 6 branches missed.">) {</span>
+<span class="nc" id="L73">    val state by viewModel.state.collectAsState()</span>
+
+<span class="nc bnc" id="L75" title="All 4 branches missed.">    val listTitle = when (state.listType) {</span>
+<span class="nc" id="L76">        ListType.Main -&gt; &quot;Game Catalog&quot;</span>
+<span class="nc" id="L77">        ListType.Favorites -&gt; &quot;Favorites&quot;</span>
+<span class="nc" id="L78">        ListType.Deleted -&gt; &quot;Deleted&quot;</span>
+<span class="nc" id="L79">        ListType.Assistant -&gt; &quot;Assistant&quot;</span>
+    }
+<span class="nc" id="L81">    Scaffold(</span>
+<span class="nc" id="L82">        topBar = {</span>
+            Text(
+                text = listTitle,
+                style = MaterialTheme.typography.headlineMedium,
+                modifier = Modifier.padding(16.dp)
+            )
+        },
+<span class="nc" id="L89">        bottomBar = {</span>
+            NavigationBar {
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.ViewList, contentDescription = null) },
+                    label = { Text(&quot;List&quot;) },
+                    selected = state.listType == ListType.Main,
+                    onClick = { viewModel.setListType(ListType.Main) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Star, contentDescription = null) },
+                    label = { Text(&quot;Favorites&quot;) },
+                    selected = state.listType == ListType.Favorites,
+                    onClick = { viewModel.setListType(ListType.Favorites) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                    label = { Text(&quot;Deleted&quot;) },
+                    selected = state.listType == ListType.Deleted,
+                    onClick = { viewModel.setListType(ListType.Deleted) }
+                )
+                NavigationBarItem(
+                    icon = { Icon(Icons.Default.HeadsetMic, contentDescription = null) },
+                    label = { Text(&quot;Chat&quot;) },
+                    selected = state.listType == ListType.Assistant,
+                    onClick = { viewModel.setListType(ListType.Assistant) }
+                )
+            }
+        }
+<span class="nc" id="L117">    ) { padding -&gt;</span>
+        Box(modifier = Modifier.padding(padding).fillMaxSize()) {
+            if (state.listType == ListType.Assistant) {
+                AssistantScreen()
+            } else {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        value = state.searchQuery,
+                        onValueChange = viewModel::updateSearchQuery,
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text(&quot;Search by name or category&quot;) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Search, contentDescription = null)
+                        },
+                        singleLine = true,
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
+                            unfocusedIndicatorColor = MaterialTheme.colorScheme.outline
+                        )
+                    )
+                    IconButton(
+                        onClick = {
+                            viewModel.setViewMode(
+                                if (state.viewMode == ViewMode.List) ViewMode.Grid else ViewMode.List
+                            )
+                        },
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (state.viewMode == ViewMode.List) Icons.Default.GridView else Icons.Default.ViewList,
+                            contentDescription = if (state.viewMode == ViewMode.List) &quot;Switch to grid view&quot; else &quot;Switch to list view&quot;
+                        )
+                    }
+                }
+
+                if (state.selectionMode) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (state.selectedGameIds.isEmpty()) &quot;Select items&quot; else &quot;${state.selectedGameIds.size}&quot;,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            if (state.selectedGameIds.isNotEmpty()) {
+                                if (state.listType == ListType.Favorites) {
+                                    Button(
+                                        onClick = viewModel::bulkUnfavoriteSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(&quot;Unfavorite&quot;)
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = viewModel::bulkMarkFavoriteSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Star, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(&quot;Favorites&quot;)
+                                    }
+                                }
+                                if (state.listType == ListType.Deleted) {
+                                    Button(
+                                        onClick = viewModel::bulkRestoreSelected,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Restore, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(&quot;Recover&quot;)
+                                    }
+                                } else {
+                                    Button(
+                                        onClick = viewModel::showBulkDeleteConfirmation,
+                                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    ) {
+                                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
+                                        Spacer(modifier = Modifier.size(4.dp))
+                                        Text(&quot;Delete&quot;)
+                                    }
+                                }
+                            }
+                            TextButton(onClick = viewModel::exitSelectionMode) {
+                                Text(&quot;Cancel&quot;)
+                            }
+                        }
+                    }
+                }
+
+                PullToRefreshBox(
+                    isRefreshing = state.isRefreshing,
+                    onRefresh = viewModel::onPullToRefresh,
+                    modifier = Modifier.weight(1f)
+                ) {
+                state.refreshError?.let { error -&gt;
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                }
+                when (state.viewMode) {
+                    ViewMode.List -&gt; LazyColumn(
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(
+                            items = state.games,
+                            key = { it.id }
+                        ) { game -&gt;
+                            GameItem(
+                                game = game,
+                                isSelectionMode = state.selectionMode,
+                                isSelected = state.selectedGameIds.contains(game.id),
+                                onClick = {
+                                    if (state.selectionMode) viewModel.toggleGameSelection(game.id)
+                                    else viewModel.setSelectedGame(game)
+                                },
+                                onLongClick = { viewModel.enterSelectionMode(game.id) },
+                                onFavoriteClick = { viewModel.toggleGameFavorite(game) }
+                            )
+                        }
+                    }
+                    ViewMode.Grid -&gt; LazyVerticalGrid(
+                        columns = GridCells.Fixed(2),
+                        contentPadding = PaddingValues(16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        items(
+                            items = state.games,
+                            key = { it.id }
+                        ) { game -&gt;
+                            GridGameItem(
+                                game = game,
+                                isSelectionMode = state.selectionMode,
+                                isSelected = state.selectedGameIds.contains(game.id),
+                                onClick = {
+                                    if (state.selectionMode) viewModel.toggleGameSelection(game.id)
+                                    else viewModel.setSelectedGame(game)
+                                },
+                                onLongClick = { viewModel.enterSelectionMode(game.id) },
+                                onFavoriteClick = { viewModel.toggleGameFavorite(game) }
+                            )
+                        }
+                    }
+                }
+                }
+            }
+            }
+
+            if (state.showBulkDeleteConfirmation) {
+                AlertDialog(
+                    onDismissRequest = viewModel::dismissBulkDeleteConfirmation,
+                    title = { Text(&quot;Delete games?&quot;) },
+                    text = {
+                        Text(
+                            &quot;Delete ${state.selectedGameIds.size} game(s)? They will be hidden from the list.&quot;
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = viewModel::bulkDeleteSelected,
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.error
+                            )
+                        ) {
+                            Text(&quot;Delete&quot;)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = viewModel::dismissBulkDeleteConfirmation) {
+                            Text(&quot;Cancel&quot;)
+                        }
+                    }
+                )
+            }
+
+            if (state.selectedGame != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable { viewModel.clearSelection() },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .padding(24.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) { /* consume clicks so card doesn't close */ }
+                    ) {
+                        state.selectedGame?.let{ selectedGame -&gt;
+                            GameDetailContent(
+                            game = selectedGame,
+                            onClose = viewModel::clearSelection,
+                            onEdit = { viewModel.updateGame(it) },
+                            onDelete = { viewModel.deleteGame(selectedGame.id) },
+                            error = null
+                        )
+                    }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GridGameItem(
+    game: Game,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onClick: () -&gt; Unit,
+    onLongClick: () -&gt; Unit,
+    onFavoriteClick: () -&gt; Unit
+<span class="nc" id="L362">) {</span>
+<span class="nc" id="L363">    Card(</span>
+<span class="nc" id="L364">        modifier = Modifier</span>
+<span class="nc" id="L365">            .fillMaxWidth()</span>
+<span class="nc" id="L366">            .combinedClickable(</span>
+<span class="nc" id="L367">                onClick = onClick,</span>
+<span class="nc" id="L368">                onLongClick = onLongClick</span>
+            ),
+<span class="nc" id="L370">        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),</span>
+<span class="nc" id="L371">        colors = CardDefaults.cardColors(</span>
+<span class="nc bnc" id="L372" title="All 2 branches missed.">            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)</span>
+<span class="nc" id="L373">            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)</span>
+        )
+<span class="nc" id="L375">    ) {</span>
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (isSelectionMode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                        contentDescription = if (isSelected) &quot;Selected&quot; else &quot;Not selected&quot;,
+                        modifier = Modifier.padding(4.dp)
+                    )
+                }
+            }
+            Box(modifier = Modifier.fillMaxWidth()) {
+                AsyncImage(
+                    model = game.thumbnail,
+                    contentDescription = game.title,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(120.dp),
+                    contentScale = ContentScale.Crop
+                )
+                IconButton(
+                    onClick = onFavoriteClick,
+                    modifier = Modifier.align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        imageVector = if (game.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                        contentDescription = if (game.isFavorite) &quot;Unfavorite&quot; else &quot;Favorite&quot;,
+                        tint = if (game.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Text(
+                text = game.title,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun GameItem(
+    game: Game,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onClick: () -&gt; Unit,
+    onLongClick: () -&gt; Unit,
+    onFavoriteClick: () -&gt; Unit
+<span class="nc" id="L431">) {</span>
+<span class="nc" id="L432">    Card(</span>
+<span class="nc" id="L433">        modifier = Modifier</span>
+<span class="nc" id="L434">            .fillMaxWidth()</span>
+<span class="nc" id="L435">            .combinedClickable(</span>
+<span class="nc" id="L436">                onClick = onClick,</span>
+<span class="nc" id="L437">                onLongClick = onLongClick</span>
+            ),
+<span class="nc" id="L439">        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),</span>
+<span class="nc" id="L440">        colors = CardDefaults.cardColors(</span>
+<span class="nc bnc" id="L441" title="All 2 branches missed.">            containerColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)</span>
+<span class="nc" id="L442">            else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)</span>
+        )
+<span class="nc" id="L444">    ) {</span>
+        Box(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isSelectionMode) {
+                    Icon(
+                        imageVector = if (isSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                        contentDescription = if (isSelected) &quot;Selected&quot; else &quot;Not selected&quot;
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                }
+                AsyncImage(
+                model = game.thumbnail,
+                contentDescription = game.title,
+                modifier = Modifier.size(72.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.size(12.dp))
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .height(72.dp)
+            ) {
+                Text(
+                    text = game.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = game.genre,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = game.shortDescription,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            IconButton(
+                onClick = onFavoriteClick,
+                modifier = Modifier
+            ) {
+                Icon(
+                    imageVector = if (game.isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                    contentDescription = if (game.isFavorite) &quot;Unfavorite&quot; else &quot;Favorite&quot;,
+                    tint = if (game.isFavorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

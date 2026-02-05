@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameListViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.ui.list</a> &gt; <span class="el_source">GameListViewModel.kt</span></div><h1>GameListViewModel.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.ui.list
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.domain.usecase.GetDeletedGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.GetFavoriteGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.GetGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGameDeletedUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesDeletedUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesFavoriteUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesUndeletedUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.MarkGamesUnfavoriteUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SearchDeletedGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SearchFavoriteGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SearchGamesUseCase
+import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
+import com.example.cinepolis_vg_lfcr.data.preferences.ViewModePreferences
+import com.example.cinepolis_vg_lfcr.domain.usecase.UpdateGameUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+<span class="fc" id="L34">enum class ViewMode { List, Grid }</span>
+
+<span class="fc" id="L36">enum class ListType { Main, Favorites, Deleted, Assistant }</span>
+
+<span class="fc" id="L38">data class GameListUiState(</span>
+<span class="pc" id="L39">    val games: List&lt;Game&gt; = emptyList(),</span>
+<span class="fc" id="L40">    val searchQuery: String = &quot;&quot;,</span>
+<span class="pc" id="L41">    val isRefreshing: Boolean = false,</span>
+<span class="pc" id="L42">    val refreshError: String? = null,</span>
+<span class="pc" id="L43">    val selectedGame: Game? = null,</span>
+<span class="fc" id="L44">    val viewMode: ViewMode = ViewMode.List,</span>
+<span class="fc" id="L45">    val selectionMode: Boolean = false,</span>
+<span class="fc" id="L46">    val selectedGameIds: Set&lt;Int&gt; = emptySet(),</span>
+<span class="pc" id="L47">    val showBulkDeleteConfirmation: Boolean = false,</span>
+<span class="fc" id="L48">    val listType: ListType = ListType.Main</span>
+<span class="fc" id="L49">)</span>
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@HiltViewModel
+<span class="fc" id="L53">class GameListViewModel @Inject constructor(</span>
+<span class="fc" id="L54">    private val getGamesUseCase: GetGamesUseCase,</span>
+<span class="fc" id="L55">    private val searchGamesUseCase: SearchGamesUseCase,</span>
+<span class="fc" id="L56">    private val getFavoriteGamesUseCase: GetFavoriteGamesUseCase,</span>
+<span class="fc" id="L57">    private val searchFavoriteGamesUseCase: SearchFavoriteGamesUseCase,</span>
+<span class="fc" id="L58">    private val getDeletedGamesUseCase: GetDeletedGamesUseCase,</span>
+<span class="fc" id="L59">    private val searchDeletedGamesUseCase: SearchDeletedGamesUseCase,</span>
+<span class="fc" id="L60">    private val syncGamesUseCase: SyncGamesUseCase,</span>
+<span class="fc" id="L61">    private val updateGameUseCase: UpdateGameUseCase,</span>
+<span class="fc" id="L62">    private val markGameDeletedUseCase: MarkGameDeletedUseCase,</span>
+<span class="fc" id="L63">    private val markGamesDeletedUseCase: MarkGamesDeletedUseCase,</span>
+<span class="fc" id="L64">    private val markGamesUndeletedUseCase: MarkGamesUndeletedUseCase,</span>
+<span class="fc" id="L65">    private val markGamesFavoriteUseCase: MarkGamesFavoriteUseCase,</span>
+<span class="fc" id="L66">    private val markGamesUnfavoriteUseCase: MarkGamesUnfavoriteUseCase,</span>
+<span class="fc" id="L67">    private val viewModePreferences: ViewModePreferences</span>
+<span class="fc" id="L68">) : ViewModel() {</span>
+
+<span class="fc" id="L70">    private val _state = MutableStateFlow(GameListUiState())</span>
+<span class="fc" id="L71">    val state: StateFlow&lt;GameListUiState&gt; = _state.asStateFlow()</span>
+
+<span class="fc" id="L73">    private val searchQueryFlow = MutableStateFlow(&quot;&quot;)</span>
+<span class="fc" id="L74">    private val listTypeFlow = MutableStateFlow(ListType.Main)</span>
+
+<span class="fc" id="L76">    init {</span>
+<span class="fc" id="L77">        combine(listTypeFlow, searchQueryFlow) { listType, query -&gt; listType to query }</span>
+<span class="fc" id="L78">            .flatMapLatest { (listType, query) -&gt;</span>
+                when (listType) {
+                    ListType.Main -&gt;
+                        if (query.isBlank()) getGamesUseCase() else searchGamesUseCase(query)
+                    ListType.Favorites -&gt;
+                        if (query.isBlank()) getFavoriteGamesUseCase() else searchFavoriteGamesUseCase(query)
+                    ListType.Deleted -&gt;
+                        if (query.isBlank()) getDeletedGamesUseCase() else searchDeletedGamesUseCase(query)
+                    ListType.Assistant -&gt;
+                        flowOf(emptyList())
+                }
+            }
+<span class="fc" id="L90">            .onEach { games -&gt;</span>
+                _state.update { it.copy(games = games) }
+            }
+<span class="fc" id="L93">            .launchIn(viewModelScope)</span>
+
+<span class="fc" id="L95">        listTypeFlow</span>
+<span class="fc" id="L96">            .onEach { type -&gt;</span>
+                _state.update { it.copy(listType = type) }
+            }
+<span class="fc" id="L99">            .launchIn(viewModelScope)</span>
+
+<span class="fc" id="L101">        viewModePreferences.viewModeValue</span>
+<span class="fc" id="L102">            .onEach { value -&gt;</span>
+                val mode = if (value == &quot;Grid&quot;) ViewMode.Grid else ViewMode.List
+                _state.update { it.copy(viewMode = mode) }
+            }
+<span class="fc" id="L106">            .launchIn(viewModelScope)</span>
+<span class="fc" id="L107">    }</span>
+
+    fun updateSearchQuery(query: String) {
+<span class="fc" id="L110">        searchQueryFlow.value = query</span>
+<span class="fc" id="L111">        _state.update { it.copy(searchQuery = query) }</span>
+<span class="fc" id="L112">    }</span>
+
+    fun onPullToRefresh() {
+<span class="nc" id="L115">        viewModelScope.launch {</span>
+            _state.update { it.copy(isRefreshing = true, refreshError = null) }
+            syncGamesUseCase(forceRefresh = true)
+                .onSuccess {
+                    _state.update { it.copy(isRefreshing = false) }
+                }
+                .onFailure { e -&gt;
+                    _state.update {
+                        it.copy(
+                            isRefreshing = false,
+                            refreshError = e.message ?: &quot;Refresh failed&quot;
+                        )
+                    }
+                }
+        }
+<span class="nc" id="L130">    }</span>
+
+    fun setSelectedGame(game: Game?) {
+<span class="nc" id="L133">        _state.update { it.copy(selectedGame = game) }</span>
+<span class="nc" id="L134">    }</span>
+
+    fun setListType(type: ListType) {
+<span class="fc" id="L137">        listTypeFlow.value = type</span>
+<span class="fc" id="L138">    }</span>
+
+    fun setViewMode(mode: ViewMode) {
+<span class="fc" id="L141">        _state.update { it.copy(viewMode = mode) }</span>
+<span class="fc" id="L142">        viewModelScope.launch {</span>
+            viewModePreferences.setViewModeValue(
+                when (mode) { ViewMode.List -&gt; &quot;List&quot;; ViewMode.Grid -&gt; &quot;Grid&quot; }
+            )
+        }
+<span class="fc" id="L147">    }</span>
+
+    fun clearSelection() {
+<span class="nc" id="L150">        _state.update { it.copy(selectedGame = null) }</span>
+<span class="nc" id="L151">    }</span>
+
+    fun updateGame(updated: Game) {
+<span class="nc" id="L154">        viewModelScope.launch {</span>
+            runCatching { updateGameUseCase(updated) }
+                .onSuccess { _state.update { it.copy(selectedGame = updated) } }
+        }
+<span class="nc" id="L158">    }</span>
+
+    fun deleteGame(id: Int) {
+<span class="nc" id="L161">        viewModelScope.launch {</span>
+            runCatching { markGameDeletedUseCase(id) }
+                .onSuccess { clearSelection() }
+        }
+<span class="nc" id="L165">    }</span>
+
+<span class="nc" id="L167">    fun enterSelectionMode(initialId: Int? = null) {</span>
+<span class="fc" id="L168">        _state.update {</span>
+<span class="fc" id="L169">            it.copy(</span>
+<span class="fc" id="L170">                selectionMode = true,</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">                selectedGameIds = if (initialId != null) setOf(initialId) else emptySet()</span>
+<span class="fc" id="L172">            )</span>
+        }
+<span class="fc" id="L174">    }</span>
+
+    fun exitSelectionMode() {
+<span class="fc" id="L177">        _state.update {</span>
+<span class="fc" id="L178">            it.copy(selectionMode = false, selectedGameIds = emptySet())</span>
+        }
+<span class="fc" id="L180">    }</span>
+
+    fun toggleGameSelection(id: Int) {
+<span class="nc" id="L183">        _state.update { state -&gt;</span>
+<span class="nc bnc" id="L184" title="All 2 branches missed.">            val newSet = if (state.selectedGameIds.contains(id)) {</span>
+<span class="nc" id="L185">                state.selectedGameIds - id</span>
+            } else {
+<span class="nc" id="L187">                state.selectedGameIds + id</span>
+            }
+<span class="nc" id="L189">            state.copy(selectedGameIds = newSet)</span>
+        }
+<span class="nc" id="L191">    }</span>
+
+    fun showBulkDeleteConfirmation() {
+<span class="nc bnc" id="L194" title="All 4 branches missed.">        if (_state.value.selectedGameIds.isNotEmpty()) {</span>
+<span class="nc" id="L195">            _state.update { it.copy(showBulkDeleteConfirmation = true) }</span>
+        }
+<span class="nc" id="L197">    }</span>
+
+    fun dismissBulkDeleteConfirmation() {
+<span class="nc" id="L200">        _state.update { it.copy(showBulkDeleteConfirmation = false) }</span>
+<span class="nc" id="L201">    }</span>
+
+    fun bulkDeleteSelected() {
+<span class="nc" id="L204">        val ids = _state.value.selectedGameIds.toList()</span>
+<span class="nc bnc" id="L205" title="All 2 branches missed.">        if (ids.isEmpty()) return</span>
+<span class="nc" id="L206">        _state.update { it.copy(showBulkDeleteConfirmation = false) }</span>
+<span class="nc" id="L207">        viewModelScope.launch {</span>
+            runCatching { markGamesDeletedUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+<span class="nc" id="L211">    }</span>
+
+    fun toggleGameFavorite(game: Game) {
+<span class="nc" id="L214">        viewModelScope.launch {</span>
+            val ids = listOf(game.id)
+            if (game.isFavorite) {
+                runCatching { markGamesUnfavoriteUseCase(ids) }
+            } else {
+                runCatching { markGamesFavoriteUseCase(ids) }
+            }
+        }
+<span class="nc" id="L222">    }</span>
+
+    fun bulkMarkFavoriteSelected() {
+<span class="nc" id="L225">        val ids = _state.value.selectedGameIds.toList()</span>
+<span class="nc bnc" id="L226" title="All 2 branches missed.">        if (ids.isEmpty()) return</span>
+<span class="nc" id="L227">        viewModelScope.launch {</span>
+            runCatching { markGamesFavoriteUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+<span class="nc" id="L231">    }</span>
+
+    fun bulkUnfavoriteSelected() {
+<span class="nc" id="L234">        val ids = _state.value.selectedGameIds.toList()</span>
+<span class="nc bnc" id="L235" title="All 2 branches missed.">        if (ids.isEmpty()) return</span>
+<span class="nc" id="L236">        viewModelScope.launch {</span>
+            runCatching { markGamesUnfavoriteUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+<span class="nc" id="L240">    }</span>
+
+    fun bulkRestoreSelected() {
+<span class="nc" id="L243">        val ids = _state.value.selectedGameIds.toList()</span>
+<span class="nc bnc" id="L244" title="All 2 branches missed.">        if (ids.isEmpty()) return</span>
+<span class="nc" id="L245">        viewModelScope.launch {</span>
+            runCatching { markGamesUndeletedUseCase(ids) }
+                .onSuccess { exitSelectionMode() }
+        }
+<span class="nc" id="L249">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

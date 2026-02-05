@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.repository</a> &gt; <span class="el_source">GameRepositoryImpl.kt</span></div><h1>GameRepositoryImpl.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.repository
+
+import com.example.cinepolis_vg_lfcr.data.local.GameDao
+import com.example.cinepolis_vg_lfcr.data.mapper.GameMapper.toDomain
+import com.example.cinepolis_vg_lfcr.data.mapper.GameMapper.toEntity
+import com.example.cinepolis_vg_lfcr.data.remote.FreeToGameApi
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.domain.repository.GameRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import javax.inject.Inject
+
+/**
+ * Data layer implementation of [GameRepository].
+ * Syncs from API only when DB is empty (initial load) or when [syncFromRemote](forceRefresh = true) (pull-to-refresh).
+ */
+<span class="fc" id="L17">class GameRepositoryImpl @Inject constructor(</span>
+<span class="fc" id="L18">    private val api: FreeToGameApi,</span>
+<span class="fc" id="L19">    private val dao: GameDao</span>
+) : GameRepository {
+
+    override fun getGames(): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L23">        dao.getAllNotDeleted().map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override fun searchGames(query: String): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L26">        dao.searchNotDeleted(query).map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override fun getFavoriteGames(): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L29">        dao.getFavorites().map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override fun searchFavoriteGames(query: String): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L32">        dao.searchFavorites(query).map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override fun getDeletedGames(): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L35">        dao.getDeleted().map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override fun searchDeletedGames(query: String): Flow&lt;List&lt;Game&gt;&gt; =
+<span class="fc" id="L38">        dao.searchDeleted(query).map { entities -&gt; entities.map { it.toDomain() } }</span>
+
+    override suspend fun getGameById(id: Int): Game? =
+<span class="fc bfc" id="L41" title="All 2 branches covered.">        dao.getById(id)?.toDomain()</span>
+
+<span class="fc" id="L43">    override suspend fun syncFromRemote(forceRefresh: Boolean): Result&lt;Unit&gt; {</span>
+<span class="pc bpc" id="L44" title="1 of 4 branches missed.">        val shouldSync = forceRefresh || dao.getCount() == 0</span>
+<span class="fc bfc" id="L45" title="All 2 branches covered.">        if (!shouldSync) return Result.success(Unit)</span>
+<span class="fc" id="L46">        return runCatching {</span>
+<span class="fc" id="L47">            val dtos = api.getGames()</span>
+<span class="fc" id="L48">            val existing = dao.getAllIdDeletedFavorite().associateBy { it.id }</span>
+<span class="fc" id="L49">            val entities = dtos.map { dto -&gt;</span>
+<span class="fc" id="L50">                val ex = existing[dto.id]</span>
+<span class="fc" id="L51">                dto.toEntity(</span>
+<span class="fc bfc" id="L52" title="All 2 branches covered.">                    isDeleted = ex?.isDeleted ?: false,</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">                    isFavorite = ex?.isFavorite ?: false</span>
+<span class="fc" id="L54">                )</span>
+            }
+<span class="fc" id="L56">            dao.insertAll(entities)</span>
+<span class="fc" id="L57">        }</span>
+    }
+
+    override suspend fun updateGame(game: Game) {
+<span class="fc" id="L61">        dao.update(game.toEntity())</span>
+<span class="fc" id="L62">    }</span>
+
+    override suspend fun markGameDeleted(id: Int) {
+<span class="fc" id="L65">        dao.markDeleted(id)</span>
+<span class="fc" id="L66">    }</span>
+
+    override suspend fun markGamesDeleted(ids: List&lt;Int&gt;) {
+<span class="fc bfc" id="L69" title="All 4 branches covered.">        if (ids.isNotEmpty()) dao.markDeleted(ids)</span>
+<span class="fc" id="L70">    }</span>
+
+    override suspend fun markGamesUndeleted(ids: List&lt;Int&gt;) {
+<span class="pc bpc" id="L73" title="2 of 4 branches missed.">        if (ids.isNotEmpty()) dao.markUndeleted(ids)</span>
+<span class="pc" id="L74">    }</span>
+
+    override suspend fun markGamesFavorite(ids: List&lt;Int&gt;) {
+<span class="pc bpc" id="L77" title="2 of 4 branches missed.">        if (ids.isNotEmpty()) dao.markFavorite(ids)</span>
+<span class="pc" id="L78">    }</span>
+
+    override suspend fun markGamesUnfavorite(ids: List&lt;Int&gt;) {
+<span class="pc bpc" id="L81" title="2 of 4 branches missed.">        if (ids.isNotEmpty()) dao.markUnfavorite(ids)</span>
+<span class="pc" id="L82">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

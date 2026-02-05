@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameMapper.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.mapper</a> &gt; <span class="el_source">GameMapper.kt</span></div><h1>GameMapper.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.mapper
+
+import com.example.cinepolis_vg_lfcr.data.local.GameEntity
+import com.example.cinepolis_vg_lfcr.data.remote.GameDto
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+
+object GameMapper {
+
+<span class="fc" id="L9">    fun GameEntity.toDomain(): Game = Game(</span>
+<span class="fc" id="L10">        id = id,</span>
+<span class="fc" id="L11">        title = title,</span>
+<span class="fc" id="L12">        thumbnail = thumbnail,</span>
+<span class="fc" id="L13">        shortDescription = shortDescription,</span>
+<span class="fc" id="L14">        gameUrl = gameUrl,</span>
+<span class="fc" id="L15">        genre = genre,</span>
+<span class="fc" id="L16">        platform = platform,</span>
+<span class="fc" id="L17">        publisher = publisher,</span>
+<span class="fc" id="L18">        developer = developer,</span>
+<span class="fc" id="L19">        releaseDate = releaseDate,</span>
+<span class="fc" id="L20">        freetogameProfileUrl = freetogameProfileUrl,</span>
+<span class="fc" id="L21">        isDeleted = isDeleted,</span>
+<span class="fc" id="L22">        isFavorite = isFavorite</span>
+<span class="fc" id="L23">    )</span>
+
+<span class="fc" id="L25">    fun GameDto.toEntity(isDeleted: Boolean = false, isFavorite: Boolean = false): GameEntity = GameEntity(</span>
+<span class="fc" id="L26">        id = id,</span>
+<span class="fc" id="L27">        title = title,</span>
+<span class="fc" id="L28">        thumbnail = thumbnail,</span>
+<span class="fc" id="L29">        shortDescription = shortDescription,</span>
+<span class="fc" id="L30">        gameUrl = gameUrl,</span>
+<span class="fc" id="L31">        genre = genre,</span>
+<span class="fc" id="L32">        platform = platform,</span>
+<span class="fc" id="L33">        publisher = publisher,</span>
+<span class="fc" id="L34">        developer = developer,</span>
+<span class="fc" id="L35">        releaseDate = releaseDate,</span>
+<span class="fc" id="L36">        freetogameProfileUrl = freetogameProfileUrl,</span>
+<span class="fc" id="L37">        isDeleted = isDeleted,</span>
+<span class="fc" id="L38">        isFavorite = isFavorite</span>
+<span class="fc" id="L39">    )</span>
+
+<span class="fc" id="L41">    fun Game.toEntity(): GameEntity = GameEntity(</span>
+<span class="fc" id="L42">        id = id,</span>
+<span class="fc" id="L43">        title = title,</span>
+<span class="fc" id="L44">        thumbnail = thumbnail,</span>
+<span class="fc" id="L45">        shortDescription = shortDescription,</span>
+<span class="fc" id="L46">        gameUrl = gameUrl,</span>
+<span class="fc" id="L47">        genre = genre,</span>
+<span class="fc" id="L48">        platform = platform,</span>
+<span class="fc" id="L49">        publisher = publisher,</span>
+<span class="fc" id="L50">        developer = developer,</span>
+<span class="fc" id="L51">        releaseDate = releaseDate,</span>
+<span class="fc" id="L52">        freetogameProfileUrl = freetogameProfileUrl,</span>
+<span class="fc" id="L53">        isDeleted = isDeleted,</span>
+<span class="fc" id="L54">        isFavorite = isFavorite</span>
+<span class="fc" id="L55">    )</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>AssistantRepositoryImpl.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.repository</a> &gt; <span class="el_source">AssistantRepositoryImpl.kt</span></div><h1>AssistantRepositoryImpl.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.repository
+
+import android.util.Log
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressApi
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressConfig
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.BotpressSseClient
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.CreateUserRequest
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.MessagePayload
+import com.example.cinepolis_vg_lfcr.data.remote.botpress.SendMessageRequest
+import com.example.cinepolis_vg_lfcr.domain.repository.AssistantRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
+import java.util.UUID
+import javax.inject.Inject
+
+private const val BOTPRESS_LOG_TAG = &quot;Botpress&quot;
+
+<span class="fc" id="L20">class AssistantRepositoryImpl @Inject constructor(</span>
+<span class="fc" id="L21">    private val api: BotpressApi,</span>
+<span class="fc" id="L22">    private val sseClient: BotpressSseClient</span>
+) : AssistantRepository {
+
+    private var userKey: String? = null
+    private var conversationId: String? = null
+
+<span class="pc" id="L28">    override suspend fun createConversation(): Result&lt;String&gt; = runCatching {</span>
+<span class="pc bpc" id="L29" title="1 of 2 branches missed.">        val key = userKey ?: run {</span>
+<span class="fc" id="L30">            val userResponse = api.createUser(</span>
+<span class="fc" id="L31">                CreateUserRequest(id = &quot;app-${UUID.randomUUID()}&quot;, name = &quot;App User&quot;)</span>
+            )
+<span class="fc" id="L33">            Log.d(BOTPRESS_LOG_TAG, &quot;createUser: code=${userResponse.code()} body=${userResponse.body()}&quot;)</span>
+<span class="pc bpc" id="L34" title="1 of 2 branches missed.">            if (!userResponse.isSuccessful) {</span>
+<span class="nc" id="L35">                throw Exception(&quot;Create user failed: ${userResponse.code()} ${userResponse.message()}&quot;)</span>
+            }
+<span class="pc bpc" id="L37" title="1 of 2 branches missed.">            val userBody = userResponse.body() ?: throw Exception(&quot;Empty create user response&quot;)</span>
+<span class="pc bpc" id="L38" title="1 of 2 branches missed.">            userBody.resolveKey() ?: BotpressConfig.API_KEY</span>
+<span class="fc" id="L39">        }.also { userKey = it }</span>
+<span class="fc" id="L40">        val response = api.createConversation(userKey!!)</span>
+<span class="fc" id="L41">        Log.d(BOTPRESS_LOG_TAG, &quot;createConversation: code=${response.code()} body=${response.body()}&quot;)</span>
+<span class="pc bpc" id="L42" title="1 of 2 branches missed.">        if (!response.isSuccessful) {</span>
+<span class="nc" id="L43">            throw Exception(&quot;Create conversation failed: ${response.code()} ${response.message()}&quot;)</span>
+        }
+<span class="pc bpc" id="L45" title="1 of 2 branches missed.">        val body = response.body() ?: throw Exception(&quot;Empty conversation response&quot;)</span>
+<span class="pc bpc" id="L46" title="1 of 2 branches missed.">        val convId = body.resolveId() ?: &quot;conversation-${UUID.randomUUID()}&quot;</span>
+<span class="fc" id="L47">        conversationId = convId</span>
+<span class="fc" id="L48">        Log.d(BOTPRESS_LOG_TAG, &quot;conversationId=$convId&quot;)</span>
+<span class="fc" id="L49">        convId</span>
+<span class="fc" id="L50">    }</span>
+
+<span class="fc" id="L52">    override suspend fun sendMessage(text: String): Result&lt;Unit&gt; = runCatching {</span>
+<span class="fc bfc" id="L53" title="All 2 branches covered.">        val key = userKey ?: throw IllegalStateException(&quot;No user key; call createConversation first&quot;)</span>
+<span class="pc bpc" id="L54" title="1 of 2 branches missed.">        val convId = conversationId ?: throw IllegalStateException(&quot;No conversation; call createConversation first&quot;)</span>
+<span class="fc" id="L55">        val response = api.sendMessage(key, SendMessageRequest(conversationId = convId, payload = MessagePayload(text = text)))</span>
+<span class="pc bpc" id="L56" title="3 of 4 branches missed.">        Log.d(BOTPRESS_LOG_TAG, &quot;sendMessage: code=${response.code()} message=${response.message()}&quot; + if (!response.isSuccessful) &quot; errorBody=${response.errorBody()?.string()}&quot; else &quot; ok&quot;)</span>
+<span class="pc bpc" id="L57" title="1 of 2 branches missed.">        if (!response.isSuccessful) throw Exception(&quot;Send message failed: ${response.code()}&quot;)</span>
+<span class="fc" id="L58">    }</span>
+
+<span class="fc" id="L60">    override fun botMessageEvents(): Flow&lt;String&gt; = sseClient</span>
+<span class="pc bpc" id="L61" title="2 of 4 branches missed.">        .listenConversation(BotpressConfig.WEBHOOK_ID, conversationId ?: &quot;&quot;, userKey ?: &quot;&quot;)</span>
+<span class="fc" id="L62">        .map { event -&gt;</span>
+            // Botpress SSE: type=message_created, data.payload.text; only emit bot messages
+            if (event.data?.isBot == true) {
+                event.data.payload?.text ?: &quot;&quot;
+            } else {
+                event.payload?.text
+                    ?: event.payload?.payload?.text
+                    ?: event.text
+                    ?: event.message
+                    ?: &quot;&quot;
+            }
+        }
+<span class="fc" id="L74">        .catch { _ -&gt; emit(&quot;&quot;) }</span>
+<span class="fc" id="L75">        .map { it.trim() }</span>
+<span class="fc" id="L76">        .filter { it.isNotEmpty() }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

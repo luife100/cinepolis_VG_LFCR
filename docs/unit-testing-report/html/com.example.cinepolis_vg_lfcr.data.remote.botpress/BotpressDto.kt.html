@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BotpressDto.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.remote.botpress</a> &gt; <span class="el_source">BotpressDto.kt</span></div><h1>BotpressDto.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.remote.botpress
+
+import com.google.gson.annotations.SerializedName
+
+/** Request body for POST .../users (createUser). */
+<span class="fc" id="L6">data class CreateUserRequest(</span>
+<span class="pc" id="L7">    @SerializedName(&quot;id&quot;) val id: String? = null,</span>
+<span class="pc" id="L8">    @SerializedName(&quot;name&quot;) val name: String? = null,</span>
+<span class="pc" id="L9">    @SerializedName(&quot;pictureUrl&quot;) val pictureUrl: String? = null,</span>
+<span class="pc" id="L10">    @SerializedName(&quot;profile&quot;) val profile: String? = null</span>
+<span class="fc" id="L11">)</span>
+
+/** Response from POST .../users; the key is used as x-user-key for subsequent calls. */
+<span class="fc" id="L14">data class CreateUserResponse(</span>
+<span class="pc" id="L15">    @SerializedName(&quot;user&quot;) val user: UserDto? = null,</span>
+<span class="pc" id="L16">    @SerializedName(&quot;key&quot;) val key: String? = null,</span>
+<span class="pc" id="L17">    @SerializedName(&quot;userKey&quot;) val userKey: String? = null,</span>
+<span class="pc" id="L18">    @SerializedName(&quot;accessKey&quot;) val accessKey: String? = null</span>
+<span class="fc" id="L19">) {</span>
+    /** Resolve key from any known field (API may use different names). */
+<span class="fc bfc" id="L21" title="All 8 branches covered.">    fun resolveKey(): String? = key ?: userKey ?: accessKey ?: user?.id</span>
+}
+
+<span class="fc" id="L24">data class UserDto(</span>
+<span class="pc" id="L25">    @SerializedName(&quot;id&quot;) val id: String? = null,</span>
+<span class="pc" id="L26">    @SerializedName(&quot;name&quot;) val name: String? = null</span>
+<span class="fc" id="L27">)</span>
+
+/** Request body for POST .../conversations (optional id). */
+<span class="fc" id="L30">data class CreateConversationRequest(</span>
+<span class="pc" id="L31">    @SerializedName(&quot;id&quot;) val id: String? = null</span>
+<span class="fc" id="L32">)</span>
+
+/** Response from POST .../conversations; API may nest id or put at root. */
+<span class="fc" id="L35">data class ConversationResponse(</span>
+<span class="pc" id="L36">    @SerializedName(&quot;conversation&quot;) val conversation: ConversationDto? = null,</span>
+<span class="pc" id="L37">    @SerializedName(&quot;id&quot;) val id: String? = null,</span>
+<span class="pc" id="L38">    @SerializedName(&quot;conversationId&quot;) val conversationId: String? = null</span>
+<span class="fc" id="L39">) {</span>
+    /** Resolve conversation id from any known field. */
+    fun resolveId(): String? =
+<span class="fc bfc" id="L42" title="All 6 branches covered.">        conversation?.id ?: id ?: conversationId</span>
+}
+
+<span class="pc" id="L45">data class ConversationDto(</span>
+<span class="pc" id="L46">    @SerializedName(&quot;id&quot;) val id: String? = null</span>
+<span class="nc" id="L47">)</span>
+
+/** Request body for POST .../messages: requires conversationId and payload. */
+<span class="fc" id="L50">data class SendMessageRequest(</span>
+<span class="fc" id="L51">    @SerializedName(&quot;conversationId&quot;) val conversationId: String,</span>
+<span class="fc" id="L52">    @SerializedName(&quot;payload&quot;) val payload: MessagePayload</span>
+)
+
+<span class="fc" id="L55">data class MessagePayload(</span>
+<span class="pc" id="L56">    @SerializedName(&quot;type&quot;) val type: String = &quot;text&quot;,</span>
+<span class="fc" id="L57">    @SerializedName(&quot;text&quot;) val text: String</span>
+<span class="fc" id="L58">)</span>
+
+/** SSE event: type + data (Botpress sends message_created with data.payload.text). */
+<span class="fc" id="L61">data class BotpressEvent(</span>
+<span class="pc" id="L62">    @SerializedName(&quot;type&quot;) val type: String? = null,</span>
+<span class="pc" id="L63">    @SerializedName(&quot;data&quot;) val data: SseMessageData? = null,</span>
+<span class="fc" id="L64">    @SerializedName(&quot;payload&quot;) val payload: EventPayload? = null,</span>
+<span class="fc" id="L65">    @SerializedName(&quot;message&quot;) val message: String? = null,</span>
+<span class="fc" id="L66">    @SerializedName(&quot;text&quot;) val text: String? = null</span>
+<span class="fc" id="L67">)</span>
+
+/** Nested under event.data for message_created. */
+<span class="fc" id="L70">data class SseMessageData(</span>
+<span class="pc" id="L71">    @SerializedName(&quot;id&quot;) val id: String? = null,</span>
+<span class="pc" id="L72">    @SerializedName(&quot;conversationId&quot;) val conversationId: String? = null,</span>
+<span class="pc" id="L73">    @SerializedName(&quot;userId&quot;) val userId: String? = null,</span>
+<span class="pc" id="L74">    @SerializedName(&quot;payload&quot;) val payload: SseMessagePayload? = null,</span>
+<span class="pc" id="L75">    @SerializedName(&quot;isBot&quot;) val isBot: Boolean? = null</span>
+<span class="fc" id="L76">)</span>
+
+<span class="fc" id="L78">data class SseMessagePayload(</span>
+<span class="pc" id="L79">    @SerializedName(&quot;type&quot;) val type: String? = null,</span>
+<span class="pc" id="L80">    @SerializedName(&quot;text&quot;) val text: String? = null</span>
+<span class="fc" id="L81">)</span>
+
+<span class="nc" id="L83">data class EventPayload(</span>
+<span class="nc" id="L84">    @SerializedName(&quot;type&quot;) val type: String? = null,</span>
+<span class="nc" id="L85">    @SerializedName(&quot;text&quot;) val text: String? = null,</span>
+<span class="nc" id="L86">    @SerializedName(&quot;payload&quot;) val payload: TextPayload? = null</span>
+<span class="nc" id="L87">)</span>
+
+<span class="nc" id="L89">data class TextPayload(</span>
+<span class="nc" id="L90">    @SerializedName(&quot;text&quot;) val text: String? = null</span>
+<span class="nc" id="L91">)</span>
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

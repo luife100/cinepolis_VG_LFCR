@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>GameDetailScreen.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.ui.detail</a> &gt; <span class="el_source">GameDetailScreen.kt</span></div><h1>GameDetailScreen.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.ui.detail
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.ui.navigation.Routes
+
+@Composable
+fun GameDetailScreen(
+    navController: NavController,
+<span class="nc" id="L50">    viewModel: GameDetailViewModel = hiltViewModel()</span>
+<span class="nc bnc" id="L51" title="All 6 branches missed.">) {</span>
+<span class="nc" id="L52">    val state by viewModel.state.collectAsState()</span>
+
+<span class="nc" id="L54">    LaunchedEffect(state.navigateBack) {</span>
+        if (state.navigateBack) {
+            viewModel.clearNavigateBack()
+            navController.popBackStack()
+        }
+    }
+
+<span class="nc" id="L61">    Box(modifier = Modifier.fillMaxSize()) {</span>
+<span class="nc" id="L62">        when {</span>
+<span class="nc bnc" id="L63" title="All 4 branches missed.">            state.isLoading &amp;&amp; state.game == null -&gt; {</span>
+<span class="nc" id="L64">                Box(</span>
+<span class="nc" id="L65">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L66">                    contentAlignment = Alignment.Center</span>
+                ) {
+<span class="nc" id="L68">                    CircularProgressIndicator()</span>
+<span class="nc" id="L69">                }</span>
+            }
+<span class="nc bnc" id="L71" title="All 4 branches missed.">            state.error != null &amp;&amp; state.game == null -&gt; {</span>
+<span class="nc" id="L72">                Box(</span>
+<span class="nc" id="L73">                    modifier = Modifier.fillMaxSize(),</span>
+<span class="nc" id="L74">                    contentAlignment = Alignment.Center</span>
+                ) {
+<span class="nc" id="L76">                    Text(</span>
+<span class="nc" id="L77">                        text = state.error!!,</span>
+<span class="nc" id="L78">                        color = androidx.compose.material3.MaterialTheme.colorScheme.error,</span>
+<span class="nc" id="L79">                        modifier = Modifier.padding(16.dp)</span>
+                    )
+<span class="nc" id="L81">                }</span>
+            }
+<span class="nc bnc" id="L83" title="All 2 branches missed.">            state.game != null -&gt; {</span>
+<span class="nc" id="L84">                GameDetailContent(</span>
+<span class="nc" id="L85">                    game = state.game!!,</span>
+<span class="nc" id="L86">                    onClose = { navController.popBackStack() },</span>
+<span class="nc" id="L87">                    onEdit = { updated -&gt; viewModel.updateGame(updated) },</span>
+<span class="nc" id="L88">                    onDelete = { viewModel.deleteGame() },</span>
+<span class="nc" id="L89">                    error = state.error</span>
+                )
+            }
+<span class="nc" id="L92">        }</span>
+<span class="nc" id="L93">    }</span>
+}
+
+@Composable
+fun GameDetailContent(
+    game: Game,
+    onClose: () -&gt; Unit,
+    onEdit: (Game) -&gt; Unit,
+    onDelete: () -&gt; Unit,
+    error: String?
+<span class="nc" id="L103">) {</span>
+<span class="nc" id="L104">    var showEditDialog by remember { mutableStateOf(false) }</span>
+<span class="nc" id="L105">    var showDeleteDialog by remember { mutableStateOf(false) }</span>
+
+<span class="nc bnc" id="L107" title="All 2 branches missed.">    if (showEditDialog) {</span>
+<span class="nc" id="L108">        EditGameDialog(</span>
+<span class="nc" id="L109">            game = game,</span>
+<span class="nc bnc" id="L110" title="All 2 branches missed.">            onDismiss = { showEditDialog = false },</span>
+<span class="nc" id="L111">            onConfirm = { updated -&gt;</span>
+<span class="nc" id="L112">                onEdit(updated)</span>
+<span class="nc" id="L113">                showEditDialog = false</span>
+<span class="nc" id="L114">            }</span>
+        )
+    }
+<span class="nc bnc" id="L117" title="All 2 branches missed.">    if (showDeleteDialog) {</span>
+<span class="nc" id="L118">        AlertDialog(</span>
+<span class="nc" id="L119">            onDismissRequest = { showDeleteDialog = false },</span>
+            title = { Text(&quot;Delete game?&quot;) },
+<span class="nc" id="L121">            text = { Text(&quot;This will remove \&quot;${game.title}\&quot; from your catalog. You can refresh the list to get it back from the server.&quot;) },</span>
+<span class="nc" id="L122">            confirmButton = {</span>
+                TextButton(onClick = {
+                    onDelete()
+                    showDeleteDialog = false
+                }) {
+                    Text(&quot;Delete&quot;, color = androidx.compose.material3.MaterialTheme.colorScheme.error)
+                }
+            },
+<span class="nc" id="L130">            dismissButton = {</span>
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text(&quot;Cancel&quot;)
+                }
+            }
+        )
+    }
+
+<span class="nc" id="L138">    Card(</span>
+<span class="nc" id="L139">        modifier = Modifier.widthIn(max = 400.dp),</span>
+<span class="nc" id="L140">        shape = androidx.compose.material3.MaterialTheme.shapes.large,</span>
+<span class="nc" id="L141">        colors = CardDefaults.cardColors(</span>
+<span class="nc" id="L142">            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface</span>
+        ),
+<span class="nc" id="L144">        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)</span>
+<span class="nc" id="L145">    ) {</span>
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .padding(20.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = onClose
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = &quot;Close&quot;
+                    )
+                }
+            }
+            error?.let {
+                Text(
+                    text = it,
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.error,
+                    style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
+            AsyncImage(
+                model = game.thumbnail,
+                contentDescription = game.title,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = game.title,
+                style = androidx.compose.material3.MaterialTheme.typography.headlineSmall
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = game.shortDescription,
+                style = androidx.compose.material3.MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = &quot;Genre: ${game.genre}&quot;,
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = &quot;Platform: ${game.platform}&quot;,
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = &quot;Release: ${game.releaseDate}&quot;,
+                style = androidx.compose.material3.MaterialTheme.typography.bodySmall
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Button(
+                    onClick = { showEditDialog = true },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Edit,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(&quot;Edit&quot;)
+                }
+                Button(
+                    onClick = { showDeleteDialog = true },
+                    modifier = Modifier.weight(1f),
+                    colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                        containerColor = androidx.compose.material3.MaterialTheme.colorScheme.errorContainer,
+                        contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onErrorContainer
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(&quot;Delete&quot;)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EditGameDialog(
+    game: Game,
+    onDismiss: () -&gt; Unit,
+    onConfirm: (Game) -&gt; Unit
+<span class="nc" id="L247">) {</span>
+<span class="nc" id="L248">    var title by remember(game.title) { mutableStateOf(game.title) }</span>
+<span class="nc" id="L249">    var shortDescription by remember(game.shortDescription) { mutableStateOf(game.shortDescription) }</span>
+
+<span class="nc" id="L251">    AlertDialog(</span>
+<span class="nc" id="L252">        onDismissRequest = onDismiss,</span>
+        title = { Text(&quot;Edit game&quot;) },
+<span class="nc" id="L254">        text = {</span>
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text(&quot;Title&quot;) },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = shortDescription,
+                    onValueChange = { shortDescription = it },
+                    label = { Text(&quot;Short description&quot;) },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3
+                )
+            }
+        },
+<span class="nc" id="L271">        confirmButton = {</span>
+            TextButton(onClick = {
+                onConfirm(
+                    game.copy(
+                        title = title.trim().ifBlank { game.title },
+                        shortDescription = shortDescription.trim().ifBlank { game.shortDescription }
+                    )
+                )
+            }) {
+                Text(&quot;Save&quot;)
+            }
+        },
+<span class="nc" id="L283">        dismissButton = {</span>
+            TextButton(onClick = onDismiss) {
+                Text(&quot;Cancel&quot;)
+            }
+        }
+    )
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

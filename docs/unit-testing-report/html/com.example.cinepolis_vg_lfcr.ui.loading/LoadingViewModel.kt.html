@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LoadingViewModel.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.ui.loading</a> &gt; <span class="el_source">LoadingViewModel.kt</span></div><h1>LoadingViewModel.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.ui.loading
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.example.cinepolis_vg_lfcr.domain.usecase.SyncGamesUseCase
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+sealed class LoadingState {
+    data object Idle : LoadingState()
+    data object Loading : LoadingState()
+    data object Success : LoadingState()
+    data class Error(val message: String) : LoadingState()
+}
+
+@HiltViewModel
+<span class="fc" id="L21">class LoadingViewModel @Inject constructor(</span>
+<span class="fc" id="L22">    private val syncGamesUseCase: SyncGamesUseCase</span>
+<span class="fc" id="L23">) : ViewModel() {</span>
+
+<span class="fc" id="L25">    private val _state = MutableStateFlow&lt;LoadingState&gt;(LoadingState.Loading)</span>
+<span class="fc" id="L26">    val state: StateFlow&lt;LoadingState&gt; = _state.asStateFlow()</span>
+
+<span class="fc" id="L28">    init {</span>
+<span class="fc" id="L29">        syncCatalog()</span>
+<span class="fc" id="L30">    }</span>
+
+    fun syncCatalog() {
+<span class="fc" id="L33">        viewModelScope.launch {</span>
+            _state.value = LoadingState.Loading
+            syncGamesUseCase(forceRefresh = false)
+                .onSuccess {
+                    _state.value = LoadingState.Success
+                }
+                .onFailure { e -&gt;
+                    _state.value = LoadingState.Error(e.message ?: &quot;Unknown error&quot;)
+                }
+        }
+<span class="fc" id="L43">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>BotpressSseClient.kt</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">app</a> &gt; <a href="index.source.html" class="el_package">com.example.cinepolis_vg_lfcr.data.remote.botpress</a> &gt; <span class="el_source">BotpressSseClient.kt</span></div><h1>BotpressSseClient.kt</h1><pre class="source lang-java linenums">package com.example.cinepolis_vg_lfcr.data.remote.botpress
+
+import android.util.Log
+import com.google.gson.Gson
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.currentCoroutineContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import javax.inject.Inject
+
+/**
+ * Listens to Botpress SSE events endpoint and parses &quot;data:&quot; lines as [BotpressEvent].
+ * Run the returned flow in a coroutine scope; the connection stays open until cancelled.
+ */
+private const val TAG = &quot;Botpress&quot;
+
+<span class="nc" id="L24">class BotpressSseClient @Inject constructor(</span>
+<span class="nc" id="L25">    private val okHttpClient: OkHttpClient,</span>
+<span class="nc" id="L26">    private val gson: Gson</span>
+) {
+    /**
+     * Listens to conversation SSE: GET .../conversations/{conversationId}/listen
+     * Use the conversation id from createConversation so bot replies are received.
+     */
+<span class="nc" id="L32">    fun listenConversation(webhookId: String, conversationId: String, userKey: String): Flow&lt;BotpressEvent&gt; = callbackFlow {</span>
+        if (conversationId.isBlank()) {
+            awaitClose { }
+            return@callbackFlow
+        }
+        val url = &quot;${BotpressConfig.BASE_URL}$webhookId/conversations/$conversationId/listen&quot;
+        Log.d(TAG, &quot;SSE listen url=$url&quot;)
+        val request = Request.Builder()
+            .url(url)
+            .addHeader(BotpressConfig.HEADER_USER_KEY, userKey)
+            .get()
+            .build()
+
+        val call = okHttpClient.newCall(request)
+        @Suppress(&quot;BlockingMethodInNonBlockingContext&quot;)
+        val response = withContext(Dispatchers.IO) { call.execute() }
+        Log.d(TAG, &quot;SSE connect: code=${response.code} message=${response.message}&quot;)
+        if (!response.isSuccessful) {
+            val errBody = response.body?.string() ?: &quot;&quot;
+            Log.e(TAG, &quot;SSE failed body=$errBody&quot;)
+            close(Throwable(&quot;SSE failed: ${response.code} ${response.message}&quot;))
+            awaitClose { }
+            return@callbackFlow
+        }
+        val body = response.body
+        if (body == null) {
+            Log.e(TAG, &quot;SSE empty body&quot;)
+            close(Throwable(&quot;SSE empty body&quot;))
+            awaitClose { }
+            return@callbackFlow
+        }
+        val job = CoroutineScope(currentCoroutineContext()).launch {
+            withContext(Dispatchers.IO) {
+                body.byteStream().bufferedReader(Charsets.UTF_8).use { reader -&gt;
+                    while (currentCoroutineContext().isActive) {
+                        val line = reader.readLine() ?: break
+                        if (line.startsWith(&quot;data:&quot;)) {
+                            val json = line.removePrefix(&quot;data:&quot;).trim()
+                            Log.d(TAG, &quot;SSE data: $json&quot;)
+                            if (json.isEmpty() || json == &quot;[DONE]&quot;) continue
+                            try {
+                                val event = gson.fromJson(json, BotpressEvent::class.java)
+                                Log.d(TAG, &quot;SSE parsed event: type=${event.type} payload=${event.payload} text=${event.text} message=${event.message}&quot;)
+                                trySend(event)
+                            } catch (e: Exception) {
+                                Log.w(TAG, &quot;SSE parse failed: $json&quot;, e)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        awaitClose {
+            call.cancel()
+            job.cancel()
+        }
+<span class="nc" id="L88">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.14.202510111229</span></div></body></html>
