@@ -6,6 +6,7 @@ import com.example.cinepolis_vg_lfcr.data.local.IdDeletedFavorite
 import com.example.cinepolis_vg_lfcr.data.mapper.GameMapper.toDomain
 import com.example.cinepolis_vg_lfcr.data.remote.FreeToGameApi
 import com.example.cinepolis_vg_lfcr.data.remote.GameDto
+import com.example.cinepolis_vg_lfcr.domain.model.Game
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -66,7 +67,7 @@ class GameRepositoryImplTest {
     fun getGames_mapsEntitiesFromDao() = runTest {
         every { dao.getAllNotDeleted() } returns flowOf(listOf(entity1))
 
-        val list = mutableListOf<List<com.example.cinepolis_vg_lfcr.domain.model.Game>>()
+        val list = mutableListOf<List<Game>>()
         repository.getGames().collect { list.add(it) }
 
         assertEquals(1, list.size)
@@ -92,6 +93,33 @@ class GameRepositoryImplTest {
         val game = repository.getGameById(999)
 
         assertEquals(null, game)
+    }
+
+    @Test
+    fun getFavoriteGames_mapsFromDao() = runTest {
+        every { dao.getFavorites() } returns flowOf(listOf(entity1))
+        val list = mutableListOf<List<Game>>()
+        repository.getFavoriteGames().collect { list.add(it) }
+        assertEquals(1, list.size)
+        assertEquals(1, list[0][0].id)
+    }
+
+    @Test
+    fun getDeletedGames_mapsFromDao() = runTest {
+        val deleted = entity1.copy(isDeleted = true)
+        every { dao.getDeleted() } returns flowOf(listOf(deleted))
+        val list = mutableListOf<List<Game>>()
+        repository.getDeletedGames().collect { list.add(it) }
+        assertEquals(1, list.size)
+        assertTrue(list[0][0].isDeleted)
+    }
+
+    @Test
+    fun searchGames_delegatesToDao() = runTest {
+        every { dao.searchNotDeleted("rpg") } returns flowOf(listOf(entity1))
+        val list = mutableListOf<List<Game>>()
+        repository.searchGames("rpg").collect { list.add(it) }
+        assertEquals(1, list.size)
     }
 
     @Test
@@ -149,5 +177,68 @@ class GameRepositoryImplTest {
         repository.updateGame(game)
 
         coVerify { dao.update(match { entity: GameEntity -> entity.id == 1 }) }
+    }
+
+    @Test
+    fun searchFavoriteGames_delegatesToDao() = runTest {
+        every { dao.searchFavorites("rpg") } returns flowOf(listOf(entity1.copy(isFavorite = true)))
+        val list = mutableListOf<List<Game>>()
+        repository.searchFavoriteGames("rpg").collect { list.add(it) }
+        assertEquals(1, list.size)
+        assertTrue(list[0][0].isFavorite)
+    }
+
+    @Test
+    fun searchDeletedGames_delegatesToDao() = runTest {
+        val deleted = entity1.copy(isDeleted = true)
+        every { dao.searchDeleted("old") } returns flowOf(listOf(deleted))
+        val list = mutableListOf<List<Game>>()
+        repository.searchDeletedGames("old").collect { list.add(it) }
+        assertEquals(1, list.size)
+        assertTrue(list[0][0].isDeleted)
+    }
+
+    @Test
+    fun markGamesDeleted_emptyList_doesNotCallDao() = runTest {
+        repository.markGamesDeleted(emptyList())
+        coVerify(exactly = 0) { dao.markDeleted(any<List<Int>>()) }
+    }
+
+    @Test
+    fun markGamesDeleted_nonEmpty_callsDao() = runTest {
+        coEvery { dao.markDeleted(any<List<Int>>()) } just Runs
+        repository.markGamesDeleted(listOf(1, 2, 3))
+        coVerify { dao.markDeleted(listOf(1, 2, 3)) }
+    }
+
+    @Test
+    fun markGamesUndeleted_callsDao() = runTest {
+        coEvery { dao.markUndeleted(any<List<Int>>()) } just Runs
+        repository.markGamesUndeleted(listOf(1, 2))
+        coVerify { dao.markUndeleted(listOf(1, 2)) }
+    }
+
+    @Test
+    fun markGamesFavorite_callsDao() = runTest {
+        coEvery { dao.markFavorite(any<List<Int>>()) } just Runs
+        repository.markGamesFavorite(listOf(1))
+        coVerify { dao.markFavorite(listOf(1)) }
+    }
+
+    @Test
+    fun markGamesUnfavorite_callsDao() = runTest {
+        coEvery { dao.markUnfavorite(any<List<Int>>()) } just Runs
+        repository.markGamesUnfavorite(listOf(1, 2))
+        coVerify { dao.markUnfavorite(listOf(1, 2)) }
+    }
+
+    @Test
+    fun syncFromRemote_whenApiFails_returnsFailure() = runTest {
+        coEvery { dao.getCount() } returns 0
+        coEvery { api.getGames() } throws RuntimeException("network error")
+
+        val result = repository.syncFromRemote(forceRefresh = true)
+
+        assertTrue(result.isFailure)
     }
 }

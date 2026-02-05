@@ -78,4 +78,37 @@ class GameDetailViewModelTest {
 
         assertTrue(viewModel.state.value.navigateBack)
     }
+
+    @Test
+    fun updateGame_failure_setsError() = runTest {
+        val game = createGame(1)
+        val getById = mockk<GetGameByIdUseCase>()
+        coEvery { getById(1) } returns game
+        val updateGame = mockk<UpdateGameUseCase>()
+        coEvery { updateGame(any()) } throws Exception("Update failed")
+        val markDeleted = mockk<MarkGameDeletedUseCase>(relaxed = true)
+        val savedState = SavedStateHandle(mapOf("gameId" to 1))
+
+        val viewModel = GameDetailViewModel(savedState, getById, updateGame, markDeleted)
+        viewModel.updateGame(game)
+
+        assertEquals("Update failed", viewModel.state.value.error)
+    }
+
+    @Test
+    fun clearNavigateBack_clearsFlag() = runTest {
+        val game = createGame(1)
+        val getById = mockk<GetGameByIdUseCase>()
+        coEvery { getById(1) } returns game
+        val updateGame = mockk<UpdateGameUseCase>(relaxed = true)
+        val markDeleted = mockk<MarkGameDeletedUseCase>()
+        coEvery { markDeleted(1) } returns Unit
+        val savedState = SavedStateHandle(mapOf("gameId" to 1))
+
+        val viewModel = GameDetailViewModel(savedState, getById, updateGame, markDeleted)
+        viewModel.deleteGame()
+        assertTrue(viewModel.state.value.navigateBack)
+        viewModel.clearNavigateBack()
+        assertFalse(viewModel.state.value.navigateBack)
+    }
 }

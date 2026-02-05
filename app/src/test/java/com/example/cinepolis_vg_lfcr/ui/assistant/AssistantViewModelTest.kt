@@ -96,4 +96,20 @@ class AssistantViewModelTest {
 
         assertEquals(0, viewModel.state.value.messages.size)
     }
+
+    @Test
+    fun sendMessage_whenSendFails_setsError() = runTest {
+        val createConv = mockk<CreateConversationUseCase>()
+        coEvery { createConv() } returns Result.success("conv_1")
+        val sendMsg = mockk<SendChatMessageUseCase>()
+        coEvery { sendMsg(any()) } returns Result.failure(Exception("Send failed"))
+        val observeBot = mockk<ObserveBotMessagesUseCase>()
+        every { observeBot() } returns flowOf()
+
+        val viewModel = AssistantViewModel(createConv, sendMsg, observeBot)
+        viewModel.updateInputText("hi")
+        viewModel.sendMessage()
+
+        assertEquals("Send failed", viewModel.state.value.error)
+    }
 }

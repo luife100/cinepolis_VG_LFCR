@@ -110,7 +110,13 @@ tasks.register<org.gradle.testing.jacoco.tasks.JacocoReport>("jacocoUnitTestRepo
         "**/*_Impl*.class",
         "**/ComposableSingletons*.class",
         "**/*$*.class",
-        "**/*.jar"
+        "**/*.jar",
+        // Not practical to unit test (Compose/Android entry points/Hilt)
+        "**/ui/theme/**",
+        "**/ui/navigation/**",
+        "**/di/**",
+        "**/MainActivity.class",
+        "**/VgApplication.class"
     )
     // Kotlin output only: single copy of each class (intermediates/classes has merged+transformed = duplicates)
     val buildDir = layout.buildDirectory.get().asFile

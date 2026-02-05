@@ -1,0 +1,46 @@
+package com.example.cinepolis_vg_lfcr.domain.usecase
+
+import com.example.cinepolis_vg_lfcr.domain.model.Game
+import com.example.cinepolis_vg_lfcr.domain.repository.GameRepository
+import io.mockk.every
+import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
+import org.junit.Before
+import org.junit.Test
+
+class SearchFavoriteGamesUseCaseTest {
+
+    private lateinit var repository: GameRepository
+    private lateinit var useCase: SearchFavoriteGamesUseCase
+
+    @Before
+    fun setUp() {
+        repository = mockk()
+        useCase = SearchFavoriteGamesUseCase(repository)
+    }
+
+    @Test
+    fun invoke_returnsFlowFromRepository() = runTest {
+        val games = listOf(createGame(1))
+        every { repository.searchFavoriteGames("rpg") } returns flowOf(games)
+        val list = mutableListOf<List<Game>>()
+        useCase("rpg").collect { list.add(it) }
+        assertEquals(1, list.size)
+        assertEquals(games, list[0])
+    }
+
+    @Test
+    fun invoke_passesQueryToRepository() = runTest {
+        every { repository.searchFavoriteGames(any()) } returns flowOf(emptyList())
+        useCase("action").collect { }
+        io.mockk.verify { repository.searchFavoriteGames("action") }
+    }
+
+    private fun createGame(id: Int) = Game(
+        id = id, title = "Game $id", thumbnail = "", shortDescription = "",
+        gameUrl = "", genre = "", platform = "", publisher = "", developer = "",
+        releaseDate = "", freetogameProfileUrl = "", isFavorite = true
+    )
+}
